@@ -19,3 +19,11 @@ An app may accept calls from HTTP, RPC, TCP etc. Separation of services from an 
 * Improve error handling
   - stack trace
   - make sure DB errors are caught
+
+
+## License
+
+MIT Licensed. Use all you like at your own risky fun.
+Go nuts.
+
+Made from stardust ✨ [@moosch](https://github.com/moosch)
