@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import uuid from 'uuid';
 
-const USERS_FILE_PATH = path.resolve(__dirname, 'users.json');
+const USERS_FILE_PATH = path.resolve(__dirname, 'user.json');
 
 function _readUsers() {
   return new Promise((resolve, reject) => {

@@ -1,7 +1,7 @@
 import Express from 'express';
 
 import expressConfig from './component/express/express';
-import router from '../router';
+import router from './router';
 import joiErrorMiddleware from './component/celebrate/error.middleware';
 import errorHandlerMiddleware from './component/error/errorHandler.middleware';
 
