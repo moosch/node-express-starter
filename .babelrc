@@ -1,0 +1,15 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env"
+    ]
+  ],
+  "plugins": [
+    "syntax-object-rest-spread",
+    "dynamic-import-node",
+    [
+      "@babel/plugin-transform-runtime",
+      { "regenerator": true }
+    ]
+  ]
+}
