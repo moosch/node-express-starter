@@ -38,7 +38,7 @@ jobs:
       matrix:
         python-version: [3.8]
         node-version: ['12.x']
-        appname: ['node-express-starter']
+        appname: ['aws-codedeploy']
         deploy-group: ['staging']
         s3-bucket: ['moosch-codedeploy-deployments']
         s3-filename: ['staging-node-express-starter-${{ github.sha }}']
