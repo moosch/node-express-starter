@@ -1,4 +1,4 @@
-import SerialisedError from '../../component/error/serialisedError';
+import SerialisedError from '../../components/error/serialisedError';
 
 class InvalidRequestError extends SerialisedError {
   constructor(message) {

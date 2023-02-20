@@ -10,7 +10,7 @@
 
 import express from 'express';
 
-import middlewareWrapper from '../../component/express/middlewareWrapper';
+import middlewareWrapper from '../../components/express/middlewareWrapper';
 import controller from './user.controller';
 import userSchema from './user.schema';
 

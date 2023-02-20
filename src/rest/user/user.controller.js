@@ -6,7 +6,7 @@
 
 import userService from '../../services/user/user.service';
 import userErrors from '../../services/user/user.errors';
-import errorHandler from '../../component/error/error.middleware';
+import errorHandler from '../../middleware/error.middleware';
 
 export default {
   find: async (req, res) => {

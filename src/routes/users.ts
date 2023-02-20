@@ -8,10 +8,10 @@
  * It also must define a domain-specific error handler.
  */
 
-import express from 'express';
-import contextMiddleware from '../component/context/context.middleware';
-import controllers from '../controllers';
-import validation from '../validation';
+import express, { NextFunction } from 'express';
+import contextMiddleware from '@/middleware/context.middleware';
+import controllers from '@/controllers';
+import validation from '@/validation';
 
 const router = express.Router();
 

@@ -1,4 +1,4 @@
-import Joi, { joiAsExpressMiddleware } from '../../component/joi/joi';
+import Joi, { joiAsExpressMiddleware } from '../../components/joi/joi';
 
 const userParams = Joi.object().keys({
   id: Joi.string(),

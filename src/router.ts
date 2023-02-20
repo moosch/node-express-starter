@@ -4,14 +4,14 @@
  * This is also where we register path routers.
  */
 import { Router } from 'express';
-import userRouter from './routes/users';
+import userRouter from '@/routes/users';
 
 type Routers = { [key: string]: Router }
 
 const router = Router();
 
 const routers: Routers = {
-  '/user': userRouter,
+  '/users': userRouter,
 };
 
 Object.keys(routers).forEach((route: string) => {
