@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
-import { ErrorCodes } from '../../types/express/errors';
+import { NextFunction, Request } from 'express';
+import { ErrorCodes } from '../../types';
+import { Response } from '../../types';
 
 export default function errorMiddleware(err: any, req: Request, res: Response, next: NextFunction) {
   let body = {

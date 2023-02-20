@@ -1,15 +1,7 @@
 import Joi from 'joi';
 import { NextFunction, Request, Response } from 'express';
 import { logger } from '../component/logger/logger';
-import { ErrorCodes } from '../types/express/errors';
-
-interface ValidationSettings {
-  params?: Joi.ObjectSchema
-  query?: Joi.ObjectSchema
-  body?: Joi.ObjectSchema
-}
-type ValidationTypes = keyof ValidationSettings;
-type Middleware = (req: Request, res: Response, next: NextFunction) => unknown 
+import { ErrorCodes, ValidationSettings, ValidationTypes } from '../types';
 
 const validationTypes: ValidationTypes[] = ['body', 'query', 'params'];
 
@@ -36,7 +28,7 @@ const updateBody = Joi.object().keys({
   age: Joi.number(),
 });
 
-function validate(settings: ValidationSettings): Middleware {
+function validate(settings: ValidationSettings) {
   logger.debug('Validating');
   return (req: Request, res: Response, next: NextFunction) => {
     let errors = [];
@@ -67,7 +59,7 @@ function validate(settings: ValidationSettings): Middleware {
 
 export default {
   get: validate({ params: idParams }), // <url>/:id
-  create: async (req: Request, res: Response, next: NextFunction) => {
+  create: async (_req: Request, _res: Response, next: NextFunction) => {
     next();
   },
   update: validate({ params: idParams, body: createBody }),

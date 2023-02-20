@@ -1,7 +1,8 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import { logger } from '../logger/logger';
+import { Request } from '../../types';
 
-export default function securityContext(req: Request, res: Response, next: NextFunction) {
+export default function securityContext(req: Request, _res: Response, next: NextFunction) {
   logger.info(`Building SC for req: ${req.rquid}`);
   next();
 }

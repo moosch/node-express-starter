@@ -1,7 +1,6 @@
 {
-  "execMap": {
-    "js": "ts-node"
-  },
-  "ignore": ["*.test.js"],
-  "watch": ["*.*"]
+  "ignore": [".git", "node_modules", "dist", "src/**/*.spec.ts"],
+  "watch": ["src"],
+  "ext": "ts,json",
+  "exec": "ts-node ./src/app.ts"
 }

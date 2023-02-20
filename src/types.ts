@@ -1,0 +1,30 @@
+import { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
+import type Joi from 'joi';
+
+export enum ErrorCodes {
+  INTERNAL_SERVER_ERROR = 500,
+  SERVICE_UNAVAILABLE = 503,
+  INVALID_REQUEST = 400,
+  FORBIDDEN = 403,
+}
+
+export interface Request extends ExpressRequest {
+  rquid?: string
+  ctx?: SecurityContext
+}
+export interface Response extends ExpressResponse {
+  error?: ErrorCodes
+}
+
+export interface SecurityContext {
+  userId: string
+  token: string
+}
+
+export interface ValidationSettings {
+  params?: Joi.ObjectSchema
+  query?: Joi.ObjectSchema
+  body?: Joi.ObjectSchema
+}
+export type ValidationTypes = keyof ValidationSettings;
+export type Middleware = (req: Request, res: Response, next: NextFunction) => void

@@ -1,6 +1,7 @@
 import winston from 'winston';
 import uuid from 'uuid';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
+import { Request } from 'src/types';
 
 export const logger = winston.createLogger({
   level: 'info',
@@ -32,7 +33,7 @@ export const logger = winston.createLogger({
 // }
 
 
-const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+function requestLogger(req: Request, _res: Response, next: NextFunction) {
   const rquid = uuid.v4();
   req.rquid = rquid;
   logger.info(`${req.method} request`, { url: req.url, method: req.method, rquid });
