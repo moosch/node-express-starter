@@ -1,6 +1,6 @@
 {
   "execMap": {
-    "js": "babel-node"
+    "js": "ts-node"
   },
   "ignore": ["*.test.js"],
   "watch": ["*.*"]

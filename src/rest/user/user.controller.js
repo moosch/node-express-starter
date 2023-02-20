@@ -4,8 +4,8 @@
  * It's also good practice to implement logging here (and in the service layer).
  */
 
-import userService from '../../service/user/user.service';
-import userErrors from '../../service/user/user.errors';
+import userService from '../../services/user/user.service';
+import userErrors from '../../services/user/user.errors';
 import errorHandler from '../../component/error/errorHandler';
 
 export default {

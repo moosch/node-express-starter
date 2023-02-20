@@ -1,27 +1,24 @@
+import type { Express as App } from 'express';
 import bodyParser from 'body-parser';
 import compressionMiddleware from 'compression';
 import cors from 'cors';
 import helmet from 'helmet';
-import uuid from 'uuid';
+import requestLogger from '../logger/logger';
+import securityContext from '../context/context.middleware';
 
-import logger from '../logger/logger';
-
-const requestLogger = (req, res, next) => {
-  const rquid = uuid.v4();
-  req.rquid = rquid;
-  logger.info(`${req.method} request`, { url: req.url, method: req.method, rquid });
-  next();
-}
-
-export default function (app) {
+export default function (app: App) {
   app.use(helmet());
   app.use(compressionMiddleware());
   app.use(cors());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json({ type: ['json', '+json'] }));
-  app.use(requestLogger);
 
-  app.use((req, res, next) => {
+  // Add rquid to request
+  app.use(requestLogger);
+  // Builds security context from request
+  app.use(securityContext);
+
+  app.use((_req, res, next) => {
     res.header('Cache-Control', 'private, no-cache');
     next();
   });
