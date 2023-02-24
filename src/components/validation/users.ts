@@ -2,7 +2,7 @@ import Joi from 'joi';
 import validate from '@/middleware/validate.middleware';
 
 const idParams = Joi.object().keys({
-  id: Joi.string().required(),
+  id: Joi.string().uuid().required(),
 });
 
 const createBody = Joi.object().keys({
@@ -18,8 +18,8 @@ const updateBody = Joi.object().keys({
 });
 
 export default {
-  get: validate({ params: idParams }),
+  find: validate({ params: idParams }),
   create: validate({ body: createBody }),
   update: validate({ params: idParams, body: updateBody }),
-  delete: validate({ params: idParams }),
+  remove: validate({ params: idParams }),
 }

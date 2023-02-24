@@ -5,6 +5,7 @@
  */
 import { Router } from 'express';
 import userRouter from '@/routes/users';
+import authRouter from '@/routes/authentication';
 
 type Routers = { [key: string]: Router }
 
@@ -12,6 +13,7 @@ const router = Router();
 
 const routers: Routers = {
   '/users': userRouter,
+  '/auth': authRouter,
 };
 
 Object.keys(routers).forEach((route: string) => {

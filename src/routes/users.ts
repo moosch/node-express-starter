@@ -1,26 +1,17 @@
-/**
- * Routers are used to define which routes are available and how
- * the requests are handled.
- * 
- * Routes generally have validation and context middleware
- * before passing the request on to the controller layer.
- * 
- * It also must define a domain-specific error handler.
- */
-
-import express, { NextFunction } from 'express';
+import express from 'express';
 import contextMiddleware from '@/middleware/context.middleware';
 import controllers from '@/controllers';
-import validation from '@/validation';
+import validation from '@/components/validation';
 
 const router = express.Router();
 
-router.get(
-  '/:id',
-  validation.users.get,
-  contextMiddleware,
-  controllers.users.get,
-);
+// Handled by /auth/signup
+// router.get(
+//   '/:id',
+//   validation.users.find,
+//   contextMiddleware,
+//   controllers.users.find,
+// );
 
 router.post(
   '/',
@@ -38,9 +29,9 @@ router.patch(
 
 router.delete(
   '/:id',
-  validation.users.delete,
+  validation.users.remove,
   contextMiddleware,
-  controllers.users.delete,
+  controllers.users.remove,
 );
 
 // Handle any expected errors from this router

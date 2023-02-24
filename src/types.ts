@@ -1,6 +1,8 @@
 import { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
 import type Joi from 'joi';
 
+export type Nullable<T> = T | undefined | null
+
 export enum ErrorCodes {
   INTERNAL_SERVER_ERROR = 500,
   SERVICE_UNAVAILABLE = 503,
@@ -18,7 +20,8 @@ export interface Response extends ExpressResponse {
 
 export interface SecurityContext {
   userId: string
-  token: string
+  email: string
+  accessToken: string
 }
 
 export interface ValidationSettings {
