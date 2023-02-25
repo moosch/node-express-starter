@@ -1,9 +1,4 @@
-export interface UserToken {
-  id: string
-  userId: string
-  token: string // Access Token
-  createdAt: string
-}
+import { UserToken } from "@/types";
 
 export const getUserToken = async (userId: string): Promise<UserToken> => {
   return {} as UserToken;

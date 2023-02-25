@@ -1,40 +1,28 @@
 import { v4 } from 'uuid';
+import userPersistence, { FindUserByProps, UserUpdateProps } from '@/persistence/users';
 import { Nullable, User } from '@/types';
 
-interface FindUserByProps {
-  id?: string
-  email?: string
-}
-
-interface UserUpdateProps {
-  email?: string
-  password?: string
-}
-
 export const findBy = async ({ id, email }: FindUserByProps): Promise<Nullable<User>> => {
-  const user = await Database.getUserById({ id, email});
+  const user = await userPersistence.findBy({ id, email});
   return user;
 };
 
 // findAllBy
 
-export const create = async (email: string, password: string): Promise<Nullable<User>> => {
-  const userId = v4();
-  return await Database.create({userId, email, password});
+export const create = async (email: string, password: string, salt: string): Promise<Nullable<User>> => {
+  const id = v4();
+  return await userPersistence.create(id, email, password, salt);
 };
 
-export const update = async ({ email, password }: UserUpdateProps): Promise<User> => {
-  const userId = v4();
-  const props: UserUpdateProps = {};
-  if (email) props.email = email;
-  if (password) props.password = password;
-
-  return await Database.upsert(userId, props);
+export const update = async (id: string, props: UserUpdateProps): Promise<Nullable<User>> => {
+  return await userPersistence.upsert(id, props);
 };
 
-export const remove = async (id): Promise<void> => {
-  return await Database.remove(id);
+export const remove = async (id: string): Promise<void> => {
+  return await userPersistence.remove(id);
 };
+
+export { UserUpdateProps } from '@/persistence/users';
 
 export default {
   findBy,

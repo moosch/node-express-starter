@@ -1,54 +1,65 @@
 import { NextFunction, Response } from 'express';
-import userService from '@/services/users';
 import logger from '@/components/logger';
-import { Request } from '@/types';
+import userService, { UserUpdateProps } from '@/services/users';
+import authService from '@/services/authentication';
 import BaseError from '@/components/baseError';
+import { Request } from '@/types';
 
-export const find = async (req: Request, res: Response, _next: NextFunction) => {
+export const find = async (req: Request, res: Response, next: NextFunction) => {
   const { _userId: userId } = req.ctx!;
   const { id } = req.params;
 
   if (id !== userId) {
-    throw new UnauthorizedError();
+    return next(new UnauthorizedError());
   }
 
   const user = await userService.findBy({ id: req.params.id });
   if (!user) {
-    throw new UserNotFoundError();
+    return next(new UserNotFoundError());
   }
 
   return res.status(200).json({ user });
 };
 
-export const update = async (req: Request, res: Response, _next: NextFunction) => {
+export const update = async (req: Request, res: Response, next: NextFunction) => {
   const { _userId: userId } = req.ctx!;
   const { id } = req.params;
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+  const props: UserUpdateProps = { email };
 
   if (id !== userId) {
-    throw new UnauthorizedError();
+    return next(new UnauthorizedError());
   }
   if (!email && !password) {
-    // Optionally: throw new InvalidParamsError();
+    // Optionally: next(new InvalidParamsError());
     return res.status(204).json({ error: 'Nothing to do.'});
+  }
+
+  if (password) {
+    const { hash, salt } = await authService.hashPassword(password);
+    props.password = hash;
+    props.salt = salt;
   }
 
   let user = await userService.findBy({ id });
   if (!user) {
-    throw new UserNotFoundError();
+    return next(new UserNotFoundError());
   }
-
-  user = await userService.update({ email, password });
+  
+  user = await userService.update(id, props);
+  if (!user) {
+    return next(new UpdateUserError());
+  }
 
   return res.status(200).json({ user });
 };
 
-export const remove = async (req: Request, res: Response, _next: NextFunction) => {
+export const remove = async (req: Request, res: Response, next: NextFunction) => {
   const { _userId: userId } = req.ctx!;
   const { id } = req.params;
 
   if (id !== userId) {
-    throw new UnauthorizedError();
+    return next(new UnauthorizedError());
   }
   
   await userService.remove(id);
@@ -67,6 +78,14 @@ class UserNotFoundError extends BaseError {
   constructor(message?: string) {
     super(message);
     this.name = 'UserNotFoundError';
+    this.message = message || '';
+  }
+}
+
+class UpdateUserError extends BaseError {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'UpdateUserError';
     this.message = message || '';
   }
 }
@@ -102,6 +121,9 @@ export const errorHandler = async (err: any, req: Request, res: Response, next: 
   }
   if (err instanceof UserNotFoundError) {
     return res.status(404).json({ error: 'User not found.' });
+  }
+  if (err instanceof UpdateUserError) {
+    return res.status(500).json({ error: 'Failed to update user.' });
   }
   if (err instanceof TokenGenerationError) {
     return res.status(500).json({ error: 'Failed to generate tokens.' });

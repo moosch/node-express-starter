@@ -1,9 +1,14 @@
+import encryption from '@/components/encryption';
 import tokenManager, { Tokens, TokenStatus, TokenType } from '@/components/tokenManager';
-import userTokenPersistence, { UserToken } from '@/persistence/userTokens';
-import { Nullable } from '@/types';
+import userTokenPersistence from '@/persistence/userTokens';
+import { EncryptionPayload, Nullable, UserToken } from '@/types';
 
 export const generateTokens = async (userId: string): Promise<Nullable<Tokens>> => {
   return await tokenManager.generate(userId);
+};
+
+export const hashPassword = async (password: string): Promise<EncryptionPayload> => {
+  return await encryption.encryptPassword(password);
 };
 
 export const isPasswordValid = async (hashedPassword: string, password: string): Promise<boolean> => {
@@ -34,6 +39,7 @@ export const removeUserToken = async (userId: string): Promise<void> => {
 
 export default {
   generateTokens,
+  hashPassword,
   isPasswordValid,
   isTokenValid,
   refreshTokens,

@@ -7,3 +7,5 @@ They do all of the orchestration, which can be quite a lot for the more complex 
 Once the service call(s) are resolved, the controller constructs the appropriate response.
 
 It's also a place to handle any specific error types for that request path.
+
+This application uses `Error`s as values, which some believe to be an antipattern, but I like the way Golang does it, and I feel it works effectively to explicitly handle error types.

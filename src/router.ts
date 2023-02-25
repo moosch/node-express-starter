@@ -12,7 +12,7 @@ type Routers = { [key: string]: Router }
 const router = Router();
 
 const routers: Routers = {
-  '/users': userRouter,
+  '/user': userRouter,
   '/auth': authRouter,
 };
 

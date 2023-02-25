@@ -5,28 +5,22 @@ import logger from '@/components/logger';
 const validationTypes: ValidationTypes[] = ['body', 'query', 'params'];
 
 function validate(settings: ValidationSettings) {
-  logger.debug('Validating');
   return (req: Request, res: Response, next: NextFunction) => {
-    let errors = [];
+    let errors: string[] = [];
 
     for (const type of validationTypes) {
       if (settings.hasOwnProperty(type)) {
-        try {
-          settings[type]?.validate(req[type]);
-        } catch (err) {
-          errors.push(err);
+        const res = settings[type]?.validate(req[type]);
+        if (res?.error) {
+          res?.error.details.map((error) => errors.push(error.message));
         }
       }
     }
 
-    /**
-     * @note We could optionally attach an error list to the request object
-     * and allow a middleware downstream to check for it and handle it.
-     */
     if (errors.length > 0) {
+      logger.debug('ValidationErrors', { errors });
       res.status(ErrorCodes.INVALID_REQUEST);
-      res.json({ errors });
-      return;
+      return res.json({ errors });
     }
 
     next();

@@ -1,20 +1,18 @@
 import JWT, { Algorithm } from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import logger from '@/components/logger';
 import { Nullable } from '@/types';
 
 const JWT_ACCESS_TOKEN_KEY = process.env.JWT_ACCESS_TOKEN_KEY;
 const JWT_REFRESH_TOKEN_KEY = process.env.JWT_REFRESH_TOKEN_KEY;
-const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN;
-const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN;
+const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '30m';
+const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
 const JWT_ALGORITHM = process.env.JWT_ALGORITHM || 'HS256';
-const saltRounds = 10;
 
 if (!JWT_ACCESS_TOKEN_KEY) {
-  throw new Error('Unable to start server. Missing JWT Secret.');
+  throw new Error('Unable to start server. Missing ACCESS_TOKEN_KEY.');
 }
 if (!JWT_REFRESH_TOKEN_KEY) {
-  throw new Error('Unable to start server. Missing JWT Secret.');
+  throw new Error('Unable to start server. Missing REFRESH_TOKEN_KEY.');
 }
 
 export enum TokenType { ACCESS, REFRESH }
@@ -26,57 +24,55 @@ export interface Tokens {
 
 export const generate = async (userId: string): Promise<Nullable<Tokens>> => {
   const payload = { _userId: userId };
-  return new Promise((resolve) => {
-    const tokens: Tokens = { accessToken: '', refreshToken: '' };
+  console.log(`Generating for ${userId}`)
 
-    JWT.sign(
+  const tokens: Tokens = { accessToken: '', refreshToken: '' };
+  try {
+    const accessToken = await JWT.sign(
       payload, 
       JWT_ACCESS_TOKEN_KEY,
       { expiresIn: JWT_ACCESS_EXPIRES_IN, algorithm: JWT_ALGORITHM as Algorithm },
-      (error, accessToken) => {
-        if (error || !accessToken) {
-          logger.error('Failed to generate access token.', { error });
-          resolve(null);
-        }
-        tokens.accessToken = accessToken!;
-      },
     );
+    tokens.accessToken = accessToken!;
+  } catch (error) {
+    logger.error('Failed to generate access token.');
+    return null;
+  }
 
-    JWT.sign(
+  try {
+    const refreshToken = await JWT.sign(
       payload,
       JWT_REFRESH_TOKEN_KEY,
-      { expiresIn: REFRESH_EXPIRES_IN, algorithm: JWT_ALGORITHM as Algorithm },
-      (error, refreshToken) => {
-        if (error || !refreshToken) {
-          logger.error('Failed to generate refresh token.', { error });
-          resolve(null);
-        }
-        tokens.refreshToken = refreshToken!;
-      },
+      { expiresIn: JWT_REFRESH_EXPIRES_IN, algorithm: JWT_ALGORITHM as Algorithm },
     );
-    resolve(tokens);
-  });
+    tokens.refreshToken = refreshToken!;
+  } catch (error) {
+    logger.error('Failed to generate refresh token.');
+    return null;
+  }
+
+  return tokens;
 };
 
 export const validateToken = async (token: string, type: TokenType): Promise<TokenStatus> => {
   if (!token) return TokenStatus.INVALID;
 
   return new Promise((resolve) => {
-    JWT.verify(
+    return JWT.verify(
       token,
       type == TokenType.ACCESS ? JWT_ACCESS_TOKEN_KEY : JWT_REFRESH_TOKEN_KEY,
       { algorithms: [JWT_ALGORITHM as Algorithm] },
       (err, _decoded) => {
         if (err) {
           if (err.name === 'TokenExpiredError') {
-            return TokenStatus.EXPIRED;
+            return resolve(TokenStatus.EXPIRED);
           }
           if (err.name === 'JsonWebTokenError') {
-            return TokenStatus.MALFORMED;
+            return resolve(TokenStatus.MALFORMED);
           }
-          return TokenStatus.INVALID;
+          return resolve(TokenStatus.INVALID);
         }
-        return TokenStatus.VALID;
+        return resolve(TokenStatus.VALID);
       }
     );
   });

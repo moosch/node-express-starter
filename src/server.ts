@@ -6,12 +6,11 @@ import compression from 'compression';
 import cors from 'cors';
 import Express, { Express as App } from 'express';
 import helmet from 'helmet';
-import context from '@/middleware/context.middleware';
 import errorHandler from '@/middleware/error.middleware';
 import requestLogger from '@/middleware/requestLogger.middleware';
-import router from './router';
 import unknownRoute from '@/middleware/unknownRoute.middleware';
 import logger from '@/components/logger';
+import router from './router';
 
 // Lightship will starts an HTTP service on port 9000
 const lightship = createLightship();
@@ -27,38 +26,29 @@ export default function startServer() {
   app.use(compression());
   app.use(cors());
   app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json({ type: ['json', '+json'] }));
-
-  // Add rquid to request
-  app.use(requestLogger);
-  // Builds security context from request
-  app.use(context);
-
+  app.use(bodyParser.json({ type: ['json', '+json'] }));  
   app.use((_req, res, next) => {
     res.header('Cache-Control', 'private, no-cache');
     next();
   });
 
-  app.use(router);
-
+  app.use(requestLogger);
+  
   app.get('/', (_req, res) => res.send('ok'))
   app.get('/health-check', (_req, res) => res.send('ok'))
   app.get('/ping', (_req, res) => res.send('pong'))
 
-  app.listen(PORT, function() {
-    logger.info(`Server is running on port ${PORT}`);
-    lightship.signalReady();
-  });
+  app.use(router);  
+  app.use(unknownRoute);
+  app.use(errorHandler);
 
   // Used to signal that server is still setting up
-  // lightship.signalNotReady();
+  lightship.signalNotReady();
 
   const server = app.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running on port ${PORT}`);
+    lightship.signalReady();
   });
-
-  app.use(unknownRoute);
-  app.use(errorHandler);
 
   // Handle any cleanup
   process.on('SIGTERM', () => {

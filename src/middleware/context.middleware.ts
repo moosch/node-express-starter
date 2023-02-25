@@ -2,9 +2,8 @@ import { NextFunction, Response } from 'express';
 import logger from '@/components/logger';
 import authService from '@/services/authentication';
 import { validateToken, TokenStatus, TokenType } from '@/components/tokenManager';
-import { Nullable, Request, SecurityContext } from '@/types';
+import { Nullable, Request, SecurityContext, UserToken } from '@/types';
 import BaseError from '@/components/baseError';
-import { UserToken } from '@/persistence/userTokens';
 
 export const context = async (req: Request, res: Response, next: NextFunction) => {
   logger.info(`Building Context for req: ${req.rquid}`);

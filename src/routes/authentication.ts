@@ -1,6 +1,7 @@
-import express, { NextFunction } from 'express';
+import express from 'express';
 import controllers from '@/controllers';
 import validation from '@/components/validation';
+import context from '@/middleware/context.middleware';
 
 const router = express.Router();
 
@@ -18,16 +19,17 @@ router.post(
 
 router.post(
   '/refresh',
+  context,
   validation.authentication.refresh,
   controllers.authentication.refresh,
 );
 
 router.post(
   '/logout',
+  context,
   controllers.authentication.logout,
 );
 
-// Handle any expected errors from this router
-router.use(controllers.users.errorHandler);
+router.use('/', controllers.authentication.errorHandler);
 
 export default router;

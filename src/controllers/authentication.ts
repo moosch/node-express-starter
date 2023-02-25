@@ -3,48 +3,50 @@ import authService from '@/services/authentication';
 import BaseError from '@/components/baseError';
 import userService from '@/services/users';
 import logger from '@/components/logger';
-import { Request } from '@/types';
 import { TokenType } from '@/components/tokenManager';
+import { Request, User, UserView } from '@/types';
 
-export const signup = async (req: Request, res: Response, _next: NextFunction) => {
+export const signup = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
   let user = await userService.findBy({ email });
   if (user) {
-    throw new UserAlreadyExistsError();
+    return next(new UserAlreadyExistsError());
   }
-  
-  user = await userService.create(email, password);
+
+  const { hash, salt } = await authService.hashPassword(password);
+
+  user = await userService.create(email, hash, salt);
   if (!user) {
-    throw new UserCreationError();
+    return next(new UserCreationError());
   }
 
   const tokens = await authService.generateTokens(user.id);
   if (!tokens) {
-    throw new TokenGenerationError();
+    return next(new TokenGenerationError());
   }
 
   await authService.upsertUserToken(user.id, tokens.accessToken);
 
-  res.status(200).json({ user, tokens });
+  res.status(200).json({ user: userView(user), tokens });
 };
 
-export const signin = async (req: Request, res: Response, _next: NextFunction) => {
+export const signin = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
   let user = await userService.findBy({ email });
   if (!user) {
-    throw new UserNotFoundError();
+    return next(new UserNotFoundError());
   }
 
   const passwordValid = await authService.isPasswordValid(user.password, password);
   if (!passwordValid) {
-    throw new InvalidPasswordError();
+    return next(new InvalidPasswordError());
   }
 
   const tokens = await authService.generateTokens(user.id);
   if (!tokens) {
-    throw new TokenGenerationError();
+    return next(new TokenGenerationError());
   }
 
   await authService.upsertUserToken(user.id, tokens.accessToken);
@@ -52,18 +54,18 @@ export const signin = async (req: Request, res: Response, _next: NextFunction) =
   return res.status(200).json({ tokens });
 };
 
-export const refresh = async (req: Request, res: Response, _next: NextFunction) => {
+export const refresh = async (req: Request, res: Response, next: NextFunction) => {
   const { refreshToken } = req.body;
   const { _userId: userId } = req.ctx!;
 
   const isTokenValid = await authService.isTokenValid(refreshToken, TokenType.REFRESH);
   if (!isTokenValid) {
-    throw new InvalidRefreshTokenError();
+    return next(new InvalidRefreshTokenError());
   }
 
   const tokens = await authService.refreshTokens(refreshToken, userId);
   if (!tokens) {
-    throw new TokenGenerationError();
+    return next(new TokenGenerationError());
   }
 
   await authService.upsertUserToken(userId, tokens.accessToken);
@@ -71,7 +73,7 @@ export const refresh = async (req: Request, res: Response, _next: NextFunction) 
   return res.status(200).json({ tokens });
 };
 
-export const logout = async (req: Request, res: Response, _next: NextFunction) => {
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
   const { _userId: userId } = req.ctx!;
 
   authService.removeUserToken(userId);
@@ -158,6 +160,14 @@ export const errorHandler = async (err: any, req: Request, res: Response, next: 
 
   return res.status(500).json({ error: 'Unknown error.' });
 };
+
+function userView(user: User): UserView {
+  return {
+    id: user.id,
+    email: user.email,
+    createdAt: user.createdAt,
+  } as UserView;
+}
 
 export default {
   signup,

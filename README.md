@@ -8,6 +8,25 @@ There is clear separation between app layers to make code navigation a breeze.
 
 Router -> Controller -> Service -> Persistence.
 
+**Routers** define middleware and final functions in the pipeline.
+
+**Controllers** orchestrate the rest of the call-graph. They can call into multiple services and components. They do not throw errors, but rather pass custom `Error`s to a controller-level error handler. They are the only point beyond routers that send responses to clients.
+
+For
+
+**Services** do the domain-specific work, perform any data transformations, and can call the persistence layer as well as trigger any events.
+
+**Persistence** is solely to save to a data store. It will have to do any required sanitization of input as well.
+
+```
+Client --> Router --> Controller --> ServiceA --> PersistenceA
+                                \
+                                 \ --> ServiceB --> PersistenceB
+                                 /
+                                /
+Client <-----------------------
+```
+
 # Tokens
 
 The app has 2 types of tokens. **Access Tokens** and **Refresh Tokens**.
@@ -30,9 +49,9 @@ Upon signup or signin, the client will receive both an access and a refresh toke
 # Todo
 
 - [x] Improve error handling
-- [ ] Revisit logger use
 - [x] Add JWT auth refresh. Needs error response of "expired"
 - [x] Add route to refresh tokens
+- [x] Add password encryption and decryption
 - [ ] Add Postgres into docker-compose
 - [ ] Add persistence layer for User
 - [ ] Add persistence layer for UserTokens
@@ -40,4 +59,5 @@ Upon signup or signin, the client will receive both an access and a refresh toke
 - [ ] Add caching functions for UserTokens
 - [ ] Add NodeJS events to do cache updates
 - [ ] Add scheduled cleanup worker for orphaned tokens (refresh token validity period)
+- [ ] Revisit logger use
 - [ ] Add all the test
