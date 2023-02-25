@@ -5,7 +5,7 @@ import { Request } from '@/types';
 import BaseError from '@/components/baseError';
 
 export const find = async (req: Request, res: Response, _next: NextFunction) => {
-  const { userId } = req.ctx!;
+  const { _userId: userId } = req.ctx!;
   const { id } = req.params;
 
   if (id !== userId) {
@@ -21,7 +21,7 @@ export const find = async (req: Request, res: Response, _next: NextFunction) => 
 };
 
 export const update = async (req: Request, res: Response, _next: NextFunction) => {
-  const { userId } = req.ctx!;
+  const { _userId: userId } = req.ctx!;
   const { id } = req.params;
   const { email, password } = req.body;
 
@@ -44,7 +44,7 @@ export const update = async (req: Request, res: Response, _next: NextFunction) =
 };
 
 export const remove = async (req: Request, res: Response, _next: NextFunction) => {
-  const { userId } = req.ctx!;
+  const { _userId: userId } = req.ctx!;
   const { id } = req.params;
 
   if (id !== userId) {

@@ -6,7 +6,7 @@ import compression from 'compression';
 import cors from 'cors';
 import Express, { Express as App } from 'express';
 import helmet from 'helmet';
-import securityContext from '@/middleware/context.middleware';
+import context from '@/middleware/context.middleware';
 import errorHandler from '@/middleware/error.middleware';
 import requestLogger from '@/middleware/requestLogger.middleware';
 import router from './router';
@@ -32,7 +32,7 @@ export default function startServer() {
   // Add rquid to request
   app.use(requestLogger);
   // Builds security context from request
-  app.use(securityContext);
+  app.use(context);
 
   app.use((_req, res, next) => {
     res.header('Cache-Control', 'private, no-cache');

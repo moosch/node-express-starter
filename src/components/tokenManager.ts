@@ -1,4 +1,5 @@
 import JWT, { Algorithm } from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import logger from '@/components/logger';
 import { Nullable } from '@/types';
 
@@ -7,6 +8,7 @@ const JWT_REFRESH_TOKEN_KEY = process.env.JWT_REFRESH_TOKEN_KEY;
 const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN;
 const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN;
 const JWT_ALGORITHM = process.env.JWT_ALGORITHM || 'HS256';
+const saltRounds = 10;
 
 if (!JWT_ACCESS_TOKEN_KEY) {
   throw new Error('Unable to start server. Missing JWT Secret.');
@@ -16,14 +18,14 @@ if (!JWT_REFRESH_TOKEN_KEY) {
 }
 
 export enum TokenType { ACCESS, REFRESH }
-
+export enum TokenStatus { VALID, EXPIRED, INVALID, MALFORMED }
 export interface Tokens {
   accessToken: string
   refreshToken: string
 }
 
-export const generate = async (userId: string, email: string): Promise<Nullable<Tokens>> => {
-  const payload = { userId, email };
+export const generate = async (userId: string): Promise<Nullable<Tokens>> => {
+  const payload = { _userId: userId };
   return new Promise((resolve) => {
     const tokens: Tokens = { accessToken: '', refreshToken: '' };
 
@@ -56,20 +58,31 @@ export const generate = async (userId: string, email: string): Promise<Nullable<
   });
 };
 
-export const isTokenValid = async (token: string, type: TokenType): Promise<boolean> => {
-  if (!token) return false;
-  
+export const validateToken = async (token: string, type: TokenType): Promise<TokenStatus> => {
+  if (!token) return TokenStatus.INVALID;
+
   return new Promise((resolve) => {
     JWT.verify(
       token,
       type == TokenType.ACCESS ? JWT_ACCESS_TOKEN_KEY : JWT_REFRESH_TOKEN_KEY,
       { algorithms: [JWT_ALGORITHM as Algorithm] },
       (err, _decoded) => {
-        if (err) return resolve(false);
-        return resolve(true);
+        if (err) {
+          if (err.name === 'TokenExpiredError') {
+            return TokenStatus.EXPIRED;
+          }
+          if (err.name === 'JsonWebTokenError') {
+            return TokenStatus.MALFORMED;
+          }
+          return TokenStatus.INVALID;
+        }
+        return TokenStatus.VALID;
       }
     );
   });
-}
+};
 
-export default { generate, isTokenValid };
+export default {
+  generate,
+  validateToken,
+};

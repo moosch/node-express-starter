@@ -19,12 +19,12 @@ export const signup = async (req: Request, res: Response, _next: NextFunction) =
     throw new UserCreationError();
   }
 
-  const tokens = await authService.generateTokens(user.id, email);
+  const tokens = await authService.generateTokens(user.id);
   if (!tokens) {
     throw new TokenGenerationError();
   }
 
-  await authService.upsertUserTokens(user.id, tokens);
+  await authService.upsertUserToken(user.id, tokens.accessToken);
 
   res.status(200).json({ user, tokens });
 };
@@ -42,37 +42,37 @@ export const signin = async (req: Request, res: Response, _next: NextFunction) =
     throw new InvalidPasswordError();
   }
 
-  const tokens = await authService.generateTokens(user.id, email);
+  const tokens = await authService.generateTokens(user.id);
   if (!tokens) {
     throw new TokenGenerationError();
   }
 
-  await authService.upsertUserTokens(user.id, tokens);
+  await authService.upsertUserToken(user.id, tokens.accessToken);
 
   return res.status(200).json({ tokens });
 };
 
 export const refresh = async (req: Request, res: Response, _next: NextFunction) => {
   const { refreshToken } = req.body;
-  const { userId, email } = req.ctx!;
+  const { _userId: userId } = req.ctx!;
 
   const isTokenValid = await authService.isTokenValid(refreshToken, TokenType.REFRESH);
   if (!isTokenValid) {
     throw new InvalidRefreshTokenError();
   }
 
-  const tokens = await authService.refreshTokens(refreshToken, userId, email);
+  const tokens = await authService.refreshTokens(refreshToken, userId);
   if (!tokens) {
     throw new TokenGenerationError();
   }
 
-  await authService.upsertUserTokens(userId, tokens);
+  await authService.upsertUserToken(userId, tokens.accessToken);
 
   return res.status(200).json({ tokens });
 };
 
 export const logout = async (req: Request, res: Response, _next: NextFunction) => {
-  const { userId } = req.ctx!;
+  const { _userId: userId } = req.ctx!;
 
   authService.removeUserToken(userId);
 

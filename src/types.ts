@@ -19,9 +19,7 @@ export interface Response extends ExpressResponse {
 }
 
 export interface SecurityContext {
-  userId: string
-  email: string
-  accessToken: string
+  _userId: string
 }
 
 export interface ValidationSettings {
