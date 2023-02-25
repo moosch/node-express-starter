@@ -25,7 +25,9 @@ export default function securityContext(req: Request, res: Response, next: NextF
 
   // Verify
 
-    /** @todo Fetch from Redis  */
+  /** @todo Fetch from Redis  */
+
+  // On a cache miss, get from database and store in cache.
 
   // if (req.path sessionID)
   // if (!session?.userid){

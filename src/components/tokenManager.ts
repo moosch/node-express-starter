@@ -56,7 +56,7 @@ export const generate = async (userId: string, email: string): Promise<Nullable<
   });
 };
 
-export const isValidToken = async (token: string, type: TokenType): Promise<boolean> => {
+export const isTokenValid = async (token: string, type: TokenType): Promise<boolean> => {
   if (!token) return false;
   
   return new Promise((resolve) => {
@@ -72,4 +72,4 @@ export const isValidToken = async (token: string, type: TokenType): Promise<bool
   });
 }
 
-export default { generate, isValidToken };
+export default { generate, isTokenValid };

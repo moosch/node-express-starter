@@ -31,3 +31,17 @@ export interface ValidationSettings {
 }
 export type ValidationTypes = keyof ValidationSettings;
 export type Middleware = (req: Request, res: Response, next: NextFunction) => void
+
+export interface Tokens {
+  accessToken: string
+  refreshToken: string
+}
+
+export interface User {
+  id: string
+  email: string
+  password: string
+  createdAt?: number
+  updatedAt?: number
+  deletedAt?: number
+}

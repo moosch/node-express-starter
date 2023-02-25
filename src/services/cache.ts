@@ -1,8 +1,3 @@
-/**
- * Handles the API cache layer.
- * Currently only user tokens.
- */
-
 export const addAccessToken = (userId: string, accessToken: string) => {
   /** @todo add to Redis */
 };

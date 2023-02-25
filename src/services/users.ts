@@ -1,12 +1,5 @@
 import { v4 } from 'uuid';
-import BaseError from '@/components/baseError';
-
-/** @todo temporary */
-interface User {
-  id: string
-  email: string
-  password: string
-}
+import { Nullable, User } from '@/types';
 
 interface FindUserByProps {
   id?: string
@@ -18,57 +11,30 @@ interface UserUpdateProps {
   password?: string
 }
 
-export const findBy = async ({ id, email }: FindUserByProps): Promise<User> => {
-  const user = await User.getUserById(id);
-  if (!user) {
-    throw new UserNotFoundError(id);
-  }
+export const findBy = async ({ id, email }: FindUserByProps): Promise<Nullable<User>> => {
+  const user = await Database.getUserById({ id, email});
   return user;
 };
 
 // findAllBy
 
-export const create = async (email: string, password: string) => {
+export const create = async (email: string, password: string): Promise<Nullable<User>> => {
   const userId = v4();
-  const user = await User.create({userId, email, password});
-  return user;
+  return await Database.create({userId, email, password});
 };
 
-export const update = async ({ email, password }: UserUpdateProps) => {
+export const update = async ({ email, password }: UserUpdateProps): Promise<User> => {
   const userId = v4();
   const props: UserUpdateProps = {};
   if (email) props.email = email;
   if (password) props.password = password;
 
-  const user = await User.upsert(userId, props);
-  return user;
+  return await Database.upsert(userId, props);
 };
 
-export const remove = async (userId) => {
-  await User.remove(userId);
-  return;
+export const remove = async (id): Promise<void> => {
+  return await Database.remove(id);
 };
-
-class InvalidRequestError extends BaseError {
-  constructor(message?: string) {
-    super(message);
-    this.name = 'InvalidRequestError';
-    this.message = message || '';
-  }
-}
-
-class UserNotFoundError extends BaseError {
-  constructor(message?: string) {
-    super(message);
-    this.name = 'UserNotFoundError';
-    this.message = message || '';
-  }
-}
-
-export {
-  InvalidRequestError,
-  UserNotFoundError,
-}
 
 export default {
   findBy,
