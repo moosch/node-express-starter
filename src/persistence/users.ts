@@ -1,3 +1,4 @@
+import db from '@/components/database';
 import { Nullable, User } from '@/types';
 
 export interface FindUserByProps {

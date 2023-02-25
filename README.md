@@ -4,7 +4,7 @@ This is a simple but complete boilerplate for a NodeJS REST API app using Expres
 
 There is clear separation between app layers to make code navigation a breeze.
 
-# Application structure
+## Application structure
 
 Router -> Controller -> Service -> Persistence.
 
@@ -27,7 +27,7 @@ Client --> Router --> Controller --> ServiceA --> PersistenceA
 Client <-----------------------
 ```
 
-# Tokens
+## Tokens
 
 The app has 2 types of tokens. **Access Tokens** and **Refresh Tokens**.
 
@@ -46,7 +46,13 @@ Upon signup or signin, the client will receive both an access and a refresh toke
 }
 ```
 
-# Todo
+## Database ORM
+
+This app uses `pg` drivers rather than a standard ORM. This means, yes, you have to write your own SQL, but if you don't know SQL, maybe you should't be interacting with an SQL database :)
+
+You might be asking, "why not Prisma? It's the new hotness!". Well, it certainly does have a lot of stars on GitHub, but it also has a lot of issues on GitHub too. At the time of writing this, it's around 2.6k, which is a lot. So I decided to go with something more "stable". Old and boring may not be cool, but it works predictably most of the time.
+
+## Todo
 
 - [x] Improve error handling
 - [x] Add JWT auth refresh. Needs error response of "expired"
