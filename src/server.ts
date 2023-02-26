@@ -1,5 +1,3 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
 import { createLightship } from 'lightship';
 import bodyParser from 'body-parser';
 import compression from 'compression';
@@ -11,13 +9,14 @@ import requestLogger from '@/middleware/requestLogger.middleware';
 import unknownRoute from '@/middleware/unknownRoute.middleware';
 import logger from '@/components/logger';
 import router from './router';
+import getConfig from '@/components/getConfig';
 
 // Lightship will starts an HTTP service on port 9000
 const lightship = createLightship();
 
 let app: App;
 
-const PORT = process.env.port || '3000';
+const { PORT } = getConfig();
 
 export default function startServer() {
   app = Express();

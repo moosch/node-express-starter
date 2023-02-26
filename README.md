@@ -1,10 +1,18 @@
 # Node Express Starter
 
-This is a simple but complete boilerplate for a NodeJS REST API app using ExpressJS, validation with [Joi](https://joi.dev/), caching with [Redis](https://redis.io/), and database connection with [PostgreSQL](https://www.postgresql.org/).
+This is a simple but complete boilerplate for a NodeJS REST API app using ExpressJS, validation with [Joi](https://joi.dev/), caching with [Redis](https://redis.io/), and backed by a [PostgreSQL](https://www.postgresql.org/) database.
 
-There is clear separation between app layers to make code navigation a breeze.
+## Get started
+
+You will need to have Docker and NodeJS installed. Run `docker-compose up -d`. This will start Postgres, Redis and the Node app.
+
+You will need to run the script to create the database and required tables. Run `yarn createdb`.
+
+Then open up your favourite endpoint testing tool like Postman or Insomnia, and start hitting [http://localhost:3000](http://localhost:3000).
 
 ## Application structure
+
+There is clear separation between app layers to make code navigation a breeze.
 
 Router -> Controller -> Service -> Persistence.
 
@@ -58,12 +66,13 @@ You might be asking, "why not Prisma? It's the new hotness!". Well, it certainly
 - [x] Add JWT auth refresh. Needs error response of "expired"
 - [x] Add route to refresh tokens
 - [x] Add password encryption and decryption
-- [ ] Add Postgres into docker-compose
-- [ ] Add persistence layer for User
-- [ ] Add persistence layer for UserTokens
+- [x] Add Postgres into docker-compose
+- [x] Add persistence layer for User
+- [x] Add persistence layer for UserTokens
 - [ ] Add Redis into docker-compose
 - [ ] Add caching functions for UserTokens
 - [ ] Add NodeJS events to do cache updates
 - [ ] Add scheduled cleanup worker for orphaned tokens (refresh token validity period)
+- [ ] Add the ability to run migrations
 - [ ] Revisit logger use
 - [ ] Add all the test

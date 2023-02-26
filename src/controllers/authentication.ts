@@ -9,23 +9,28 @@ import { Request, User, UserView } from '@/types';
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
+  logger.info('Finding user by email');
   let user = await userService.findBy({ email });
   if (user) {
     return next(new UserAlreadyExistsError());
   }
-
+  
+  logger.info('Salting and hashing');
   const { hash, salt } = await authService.hashPassword(password);
-
+  
+  logger.info('Creating user');
   user = await userService.create(email, hash, salt);
   if (!user) {
     return next(new UserCreationError());
   }
-
+  
+  logger.info('Generating user tokens');
   const tokens = await authService.generateTokens(user.id);
   if (!tokens) {
     return next(new TokenGenerationError());
   }
-
+  
+  logger.info('Saving user tokens');
   await authService.upsertUserToken(user.id, tokens.accessToken);
 
   res.status(200).json({ user: userView(user), tokens });

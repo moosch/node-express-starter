@@ -1,21 +1,23 @@
 import winston from 'winston';
-const logLevel = process.env.LOG_LEVEL || 'error';
+import getConfig from '@/components/getConfig';
+
+const { APP_NAME, LOG_LEVEL, NODE_ENV } = getConfig();
 
 const transports = {
-  console: new winston.transports.Console({ level: logLevel }),
+  console: new winston.transports.Console({ level: LOG_LEVEL }),
   file: new winston.transports.File({ filename: 'combined.log', level: 'error' })
 };
 
 const logger = winston.createLogger({
   format: winston.format.json(),
-  defaultMeta: { service: process.env.APP_NAME || 'NodeJS REST API' },
+  defaultMeta: { service: APP_NAME || 'NodeJS REST API' },
   transports: [
     transports.console,
     transports.file
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     // format: winston.format.simple(),
     format: winston.format.combine(

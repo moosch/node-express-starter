@@ -1,7 +1,8 @@
 import { EncryptionPayload } from '@/types';
 import bcrypt from 'bcrypt';
+import getConfig from '@/components/getConfig';
 
-const SALT_ROUNDS = process.env.SALT_ROUNDS;
+const { SALT_ROUNDS } = getConfig();
 
 if (!SALT_ROUNDS) {
   throw new Error('Unable to start server. Missing SALT_ROUNDS.');

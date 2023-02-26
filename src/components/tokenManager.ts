@@ -1,12 +1,15 @@
 import JWT, { Algorithm } from 'jsonwebtoken';
 import logger from '@/components/logger';
 import { Nullable } from '@/types';
+import getConfig from '@/components/getConfig';
 
-const JWT_ACCESS_TOKEN_KEY = process.env.JWT_ACCESS_TOKEN_KEY;
-const JWT_REFRESH_TOKEN_KEY = process.env.JWT_REFRESH_TOKEN_KEY;
-const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '30m';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
-const JWT_ALGORITHM = process.env.JWT_ALGORITHM || 'HS256';
+const {
+  JWT_ACCESS_TOKEN_KEY,
+  JWT_REFRESH_TOKEN_KEY,
+  JWT_ACCESS_EXPIRES_IN,
+  JWT_REFRESH_EXPIRES_IN,
+  JWT_ALGORITHM,
+} = getConfig();
 
 if (!JWT_ACCESS_TOKEN_KEY) {
   throw new Error('Unable to start server. Missing ACCESS_TOKEN_KEY.');

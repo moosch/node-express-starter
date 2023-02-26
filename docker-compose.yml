@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      - PG_TRUST_LOCALNET=true
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=node_app
+    ports:
+      - 5432:5432
+    volumes:
+      - data:/var/lib/postgresql
+
+  redis:
+    image: redis
+
+  # node:
+  #   image: nodeapp:latest
+  #   restart: on-failure
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   build: .
+  #   environment:
+  #     # DATABASE_URL: postgres://postgres:postgrespw@postgres:5432/db
+  #     NODE_ENV: development
+  #     PORT: 3000
+  #     JWT_ACCESS_TOKEN_KEY: anevenmoresupersecretkeyforsessionfun
+  #     JWT_REFRESH_TOKEN_KEY: asupersecretkeyforsessionfun
+  #     JWT_ACCESS_EXPIRES_IN: 30m
+  #     JWT_REFRESH_EXPIRES_IN: 30d
+  #     JWT_ALGORITHM: HS256
+  #     SALT_ROUNDS: 10
+  #     LOG_LEVEL: error
+  #     PGUSER: postgres
+  #     PGHOST: localhost
+  #     PGPASSWORD: postgres
+  #     PGDATABASE: node_app
+  #     PGPORT: 5432
+  #   ports:
+  #     - "3000:3000"
+  #   command: yarn start:dev
+
+volumes: 
+  data:
