@@ -13,7 +13,7 @@ export const find = async (req: Request, res: Response, next: NextFunction) => {
     return next(new UnauthorizedError());
   }
 
-  const user = await userService.findBy({ id: req.params.id });
+  const user = await userService.findBy({ id });
   if (!user) {
     return next(new UserNotFoundError());
   }
@@ -32,9 +32,10 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
   }
   if (!email && !password) {
     // Optionally: next(new InvalidParamsError());
-    return res.status(204).json({ error: 'Nothing to do.'});
+    return res.status(200).send({ message: 'Nothing to do.'});
   }
 
+  /** @todo should probably verify the existing password */
   if (password) {
     const { hash, salt } = await authService.hashPassword(password);
     props.password = hash;

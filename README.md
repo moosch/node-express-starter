@@ -30,9 +30,6 @@ For
 Client --> Router --> Controller --> ServiceA --> PersistenceA
                                 \
                                  \ --> ServiceB --> PersistenceB
-                                 /
-                                /
-Client <-----------------------
 ```
 
 ## Tokens
@@ -69,7 +66,8 @@ You might be asking, "why not Prisma? It's the new hotness!". Well, it certainly
 - [x] Add Postgres into docker-compose
 - [x] Add persistence layer for User
 - [x] Add persistence layer for UserTokens
-- [ ] Add Redis into docker-compose
+- [x] Add Redis into docker-compose
+- [ ] Finish SQL for all routes
 - [ ] Add caching functions for UserTokens
 - [ ] Add NodeJS events to do cache updates
 - [ ] Add scheduled cleanup worker for orphaned tokens (refresh token validity period)

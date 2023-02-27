@@ -2,31 +2,27 @@ import express from 'express';
 import contextMiddleware from '@/middleware/context.middleware';
 import controllers from '@/controllers';
 import validation from '@/components/validation';
-import context from '@/middleware/context.middleware';
 
 const router = express.Router();
 
 router.get(
   '/:id',
-  context,
   validation.users.find,
-  contextMiddleware,
+  ...contextMiddleware,
   controllers.users.find,
 );
 
 router.patch(
   '/:id',
-  context,
   validation.users.update,
-  contextMiddleware,
+  ...contextMiddleware,
   controllers.users.update,
 );
 
 router.delete(
   '/:id',
-  context,
   validation.users.remove,
-  contextMiddleware,
+  ...contextMiddleware,
   controllers.users.remove,
 );
 

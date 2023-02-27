@@ -1,7 +1,7 @@
 import { CustomTypesConfig, Pool } from 'pg';
 import logger from '@/components/logger';
 
-console.log('Postgres connecting...');
+logger.info('Postgres connecting...');
 
 const pool = new Pool();
 if (!pool) {
@@ -12,7 +12,7 @@ type SQLParam = string | number
 
 export default {
   query: async (name: string, query: string, params: SQLParam[], types?: CustomTypesConfig) => {
-    logger.info(`Performing query: ${name}`);
+    logger.info(`Performing query: ${name}`, { query });
 
     const client = await pool.connect();
     const result = await client.query({

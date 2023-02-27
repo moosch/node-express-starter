@@ -27,7 +27,6 @@ export interface Tokens {
 
 export const generate = async (userId: string): Promise<Nullable<Tokens>> => {
   const payload = { _userId: userId };
-  console.log(`Generating for ${userId}`)
 
   const tokens: Tokens = { accessToken: '', refreshToken: '' };
   try {
@@ -63,7 +62,7 @@ export const validateToken = async (token: string, type: TokenType): Promise<Tok
   return new Promise((resolve) => {
     return JWT.verify(
       token,
-      type == TokenType.ACCESS ? JWT_ACCESS_TOKEN_KEY : JWT_REFRESH_TOKEN_KEY,
+      type === TokenType.ACCESS ? JWT_ACCESS_TOKEN_KEY : JWT_REFRESH_TOKEN_KEY,
       { algorithms: [JWT_ALGORITHM as Algorithm] },
       (err, _decoded) => {
         if (err) {

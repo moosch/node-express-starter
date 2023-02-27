@@ -4,7 +4,7 @@ import BaseError from '@/components/baseError';
 import userService from '@/services/users';
 import logger from '@/components/logger';
 import { TokenType } from '@/components/tokenManager';
-import { Request, User, UserView } from '@/types';
+import { Request } from '@/types';
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
@@ -29,11 +29,11 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
   if (!tokens) {
     return next(new TokenGenerationError());
   }
-  
+
   logger.info('Saving user tokens');
   await authService.upsertUserToken(user.id, tokens.accessToken);
 
-  res.status(200).json({ user: userView(user), tokens });
+  res.status(200).json({ user: user.toJson(), tokens });
 };
 
 export const signin = async (req: Request, res: Response, next: NextFunction) => {
@@ -79,9 +79,9 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 };
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
-  const { _userId: userId } = req.ctx!;
+  const { _userId: userId, _token: token } = req.ctx!;
 
-  authService.removeUserToken(userId);
+  authService.removeUserToken(userId, token);
 
   return res.status(201).send();
 };
@@ -165,14 +165,6 @@ export const errorHandler = async (err: any, req: Request, res: Response, next: 
 
   return res.status(500).json({ error: 'Unknown error.' });
 };
-
-function userView(user: User): UserView {
-  return {
-    id: user.id,
-    email: user.email,
-    createdAt: user.createdAt,
-  } as UserView;
-}
 
 export default {
   signup,

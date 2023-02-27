@@ -1,7 +1,8 @@
 import encryption from '@/components/encryption';
 import tokenManager, { Tokens, TokenStatus, TokenType } from '@/components/tokenManager';
+import UserToken from '@/models/userToken';
 import userTokenPersistence from '@/persistence/userTokens';
-import { EncryptionPayload, Nullable, UserToken } from '@/types';
+import { EncryptionPayload, Nullable } from '@/types';
 
 export const generateTokens = async (userId: string): Promise<Nullable<Tokens>> => {
   return await tokenManager.generate(userId);
@@ -18,23 +19,28 @@ export const isPasswordValid = async (hashedPassword: string, password: string):
 
 export const isTokenValid = async (token: string, tokenType: TokenType): Promise<boolean> => {
   const status = await tokenManager.validateToken(token, tokenType);
-  return status !== TokenStatus.VALID;
+  return status === TokenStatus.VALID;
 }
 
 export const refreshTokens = async (refreshToken: string, userId: string): Promise<Nullable<Tokens>> => {
   return await generateTokens(userId);
 };
 
-export const getUserToken = async (accessToken: string): Promise<UserToken> => {
-  return await userTokenPersistence.getByToken(accessToken);
+export const getUserToken = async (accessToken: string): Promise<Nullable<UserToken>> => {
+  return await userTokenPersistence.findBy({ token: accessToken });
 };
 
-export const upsertUserToken = async (userId: string, token: string): Promise<UserToken> => {
-  return await userTokenPersistence.upsertToken(userId, token);
+export const upsertUserToken = async (userId: string, token: string): Promise<Nullable<UserToken>> => {
+  const tokens = await userTokenPersistence.findBy({ userId, token });
+  if (tokens) {
+    return await userTokenPersistence.update(userId, token);
+  } else {
+    return await userTokenPersistence.create(userId, token);
+  }
 }
 
-export const removeUserToken = async (userId: string): Promise<void> => {
-  return await userTokenPersistence.removeToken(userId);
+export const removeUserToken = async (userId: string, token: string): Promise<void> => {
+  return await userTokenPersistence.remove(userId, token);
 }
 
 export default {

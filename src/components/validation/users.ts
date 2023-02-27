@@ -9,7 +9,7 @@ const idParams = Joi.object().keys({
 const updateBody = Joi.object().keys({
   email: Joi.string().email().label('Email'),
   password: passwordComplexity().label('Password'),
-}).with('email', 'password');
+}).xor('email', 'password');
 
 export default {
   find: validate({ params: idParams }),

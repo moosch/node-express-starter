@@ -1,7 +1,7 @@
 import express from 'express';
 import controllers from '@/controllers';
 import validation from '@/components/validation';
-import context from '@/middleware/context.middleware';
+import contextMiddleware from '@/middleware/context.middleware';
 
 const router = express.Router();
 
@@ -19,14 +19,14 @@ router.post(
 
 router.post(
   '/refresh',
-  context,
+  ...contextMiddleware,
   validation.authentication.refresh,
   controllers.authentication.refresh,
 );
 
 router.post(
   '/logout',
-  context,
+  ...contextMiddleware,
   controllers.authentication.logout,
 );
 

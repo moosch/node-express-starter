@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS user_tokens (
   user_id uuid NOT NULL REFERENCES users(id),
   token varchar NOT NULL,
   created_at BIGINT DEFAULT CAST (EXTRACT (epoch from current_timestamp) AS bigint),
+  updated_at BIGINT,
   PRIMARY KEY(token)
 );
 
