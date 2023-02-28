@@ -20,8 +20,6 @@ Router -> Controller -> Service -> Persistence.
 
 **Controllers** orchestrate the rest of the call-graph. They can call into multiple services and components. They do not throw errors, but rather pass custom `Error`s to a controller-level error handler. They are the only point beyond routers that send responses to clients.
 
-For
-
 **Services** do the domain-specific work, perform any data transformations, and can call the persistence layer as well as trigger any events.
 
 **Persistence** is solely to save to a data store. It will have to do any required sanitization of input as well.
