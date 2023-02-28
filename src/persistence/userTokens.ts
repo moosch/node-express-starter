@@ -70,7 +70,7 @@ export const update = async (userId: string, token: string): Promise<Nullable<Us
   }
 
   const now = Date.now();
-  const result = await db.query(
+  await db.query(
     'update-user-token',
     `UPDATE ${userTokensTableName} SET token = $1::text, updated_at = $2::bigint WHERE user_id = $3::uuid`,
     [token, now, userId],

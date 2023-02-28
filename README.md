@@ -67,10 +67,11 @@ You might be asking, "why not Prisma? It's the new hotness!". Well, it certainly
 - [x] Add persistence layer for User
 - [x] Add persistence layer for UserTokens
 - [x] Add Redis into docker-compose
-- [ ] Finish SQL for all routes
+- [x] Finish SQL for all routes
 - [ ] Add caching functions for UserTokens
 - [ ] Add NodeJS events to do cache updates
 - [ ] Add scheduled cleanup worker for orphaned tokens (refresh token validity period)
 - [ ] Add the ability to run migrations
 - [ ] Revisit logger use
 - [ ] Add all the test
+- [ ] Add Insomnia requests to repo

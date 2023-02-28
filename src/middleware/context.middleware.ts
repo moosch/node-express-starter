@@ -10,7 +10,7 @@ export const contextMiddleware = async (req: Request, res: Response, next: NextF
   logger.info(`Building Context for req: ${req.rquid}`);
 
   const { rquid, path } = req;
-  logger.debug('req.path', req.path)
+  logger.debug('req.path', req.path);
 
   // Extract JWT
   const token = req.headers.authorization ? req.headers.authorization.split(" ")[1] : null;
@@ -21,7 +21,7 @@ export const contextMiddleware = async (req: Request, res: Response, next: NextF
 
   logger.info('Extracted token', token);
 
-  // Ignore if trying to refresh tokenss
+  // Ignore if trying to refresh tokens. This is handled by the controller
   if (!path.includes('/refresh')) {
     const validToken = await validateToken(token, TokenType.ACCESS);
     if (validToken === TokenStatus.INVALID) {
