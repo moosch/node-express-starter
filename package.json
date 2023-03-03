@@ -30,8 +30,9 @@
     "jsonwebtoken": "^9.0.0",
     "lightship": "^6.1.0",
     "pg": "^8.9.0",
-    "uuid": "^9.0.0",
-    "winston": "^3.8.2"
+    "redis": "^4.6.5",
+    "redis-om": "^0.3.6",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

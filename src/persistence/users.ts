@@ -3,8 +3,9 @@ import db from '@/components/database';
 import normalizeFields from '@/components/normalizeDatabaseFields';
 import User from '@/models/user';
 import { DBRecordTypes, Nullable } from '@/types';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
 
+const logger = new Logger('users_persistence');
 const usersTableName = 'users';
 
 export interface FindUserByProps {

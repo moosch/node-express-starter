@@ -1,7 +1,9 @@
 import { v4 } from 'uuid';
 import { NextFunction, Response } from 'express';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
 import { Request } from '@/types';
+
+const logger = new Logger('request_logger_middleware');
 
 function requestLogger(req: Request, _res: Response, next: NextFunction) {
   const rquid = v4();

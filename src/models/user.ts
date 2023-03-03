@@ -1,4 +1,4 @@
-import { Nullable } from '@/types';
+import { Nullable, Serializable } from '@/types';
 
 interface UserPersistenceProps {
   id: string
@@ -9,7 +9,7 @@ interface UserPersistenceProps {
   updated_at?: number
 }
 
-class User {
+class User extends Serializable {
   public id: string;
   public email: string;
   public password: string;
@@ -18,6 +18,7 @@ class User {
   private _updated_at?: number;
 
   constructor(user: UserPersistenceProps) {
+    super();
     this.id = user.id;
     this.email = user.email;
     this.password = user.password;
@@ -35,7 +36,7 @@ class User {
   }
 
   // From persistence storage to User object.
-  static fromDynamic(user?: UserPersistenceProps): Nullable<User> {
+  static fromDynamic(user?: Record<string, any>): Nullable<User> {
     if (!user?.id
       || !user?.email
       || !user?.password

@@ -20,7 +20,4 @@ Object.keys(routers).forEach((route: string) => {
   router.use(route, routers[route]);
 });
 
-// Middleware-specific error handlers
-// router.use();
-
 export default router;

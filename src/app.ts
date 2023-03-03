@@ -1,12 +1,22 @@
-/**
- * Server entrypoint.
- * 
- * Starts an ExpressJS app and attaches routers to it.
- */
+import Logger from '@/components/logger';
+import { fetchRepository } from '@/components/cache';
+import { tokenSchema } from '@/models/userToken';
 import server from './server';
 
-/** @toto setup database connection */
+const logger = new Logger('app');
 
-/** @toto setup cache connection */
+async function setupCache() {
+  await fetchRepository('token', tokenSchema);
+}
 
-server();
+async function start() {
+  await server();
+  await setupCache();
+}
+
+start()
+  .then((_) => {
+    logger.info('Server started.');
+  }).catch((error) => {
+    logger.error('Server failed to start.', error);
+  });

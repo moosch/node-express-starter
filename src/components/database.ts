@@ -1,5 +1,7 @@
 import { CustomTypesConfig, Pool } from 'pg';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
+
+const logger = new Logger('database_component');
 
 logger.info('Postgres connecting...');
 

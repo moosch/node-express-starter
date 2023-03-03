@@ -3,9 +3,10 @@ import { v4 } from 'uuid';
 import db from '@/components/database';
 import normalizeFields from '@/components/normalizeDatabaseFields';
 import UserToken from '@/models/userToken';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
 import { Nullable } from '@/types';
 
+const logger = new Logger('user_tokens_persistence');
 const userTokensTableName = 'user_tokens';
 
 export interface UserTokenByProps {

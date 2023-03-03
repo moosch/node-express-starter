@@ -2,9 +2,11 @@ import { NextFunction, Response } from 'express';
 import authService from '@/services/authentication';
 import BaseError from '@/components/baseError';
 import userService from '@/services/users';
-import logger from '@/components/logger';
-import { TokenType } from '@/components/tokenManager';
+import Logger from '@/components/logger';
+import { TokenType } from '@/components/tokens';
 import { Request } from '@/types';
+
+const logger = new Logger('authentication_controller');
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;

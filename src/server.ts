@@ -7,9 +7,11 @@ import helmet from 'helmet';
 import errorHandler from '@/middleware/error.middleware';
 import requestLogger from '@/middleware/requestLogger.middleware';
 import unknownRoute from '@/middleware/unknownRoute.middleware';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
 import router from './router';
 import getConfig from '@/components/getConfig';
+
+const logger = new Logger('server');
 
 // Lightship will starts an HTTP service on port 9000
 const lightship = createLightship();
@@ -45,7 +47,7 @@ export default function startServer() {
   lightship.signalNotReady();
 
   const server = app.listen(PORT, () => {
-    console.log(`⚡️[server]: Server is running on port ${PORT}`);
+    logger.info(`⚡️[server]: Server is running on port ${PORT}`);
     lightship.signalReady();
   });
 

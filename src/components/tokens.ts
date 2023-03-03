@@ -1,7 +1,9 @@
 import JWT, { Algorithm } from 'jsonwebtoken';
-import logger from '@/components/logger';
-import { Nullable } from '@/types';
+import Logger from '@/components/logger';
+import { Authentication, Nullable } from '@/types';
 import getConfig from '@/components/getConfig';
+
+const logger = new Logger('token_manager');
 
 const {
   JWT_ACCESS_TOKEN_KEY,
@@ -20,22 +22,21 @@ if (!JWT_REFRESH_TOKEN_KEY) {
 
 export enum TokenType { ACCESS, REFRESH }
 export enum TokenStatus { VALID, EXPIRED, INVALID, MALFORMED }
-export interface Tokens {
-  accessToken: string
-  refreshToken: string
+export interface ContextJWT extends JWT.JwtPayload {
+  _userId?: string
 }
 
-export const generate = async (userId: string): Promise<Nullable<Tokens>> => {
+export const generate = async (userId: string): Promise<Nullable<Authentication>> => {
   const payload = { _userId: userId };
 
-  const tokens: Tokens = { accessToken: '', refreshToken: '' };
+  const auth: Authentication = { accessToken: '', refreshToken: '', userId };
   try {
     const accessToken = await JWT.sign(
       payload, 
       JWT_ACCESS_TOKEN_KEY,
       { expiresIn: JWT_ACCESS_EXPIRES_IN, algorithm: JWT_ALGORITHM as Algorithm },
     );
-    tokens.accessToken = accessToken!;
+    auth.accessToken = accessToken!;
   } catch (error) {
     logger.error('Failed to generate access token.');
     return null;
@@ -47,13 +48,29 @@ export const generate = async (userId: string): Promise<Nullable<Tokens>> => {
       JWT_REFRESH_TOKEN_KEY,
       { expiresIn: JWT_REFRESH_EXPIRES_IN, algorithm: JWT_ALGORITHM as Algorithm },
     );
-    tokens.refreshToken = refreshToken!;
+    auth.refreshToken = refreshToken!;
   } catch (error) {
     logger.error('Failed to generate refresh token.');
     return null;
   }
 
-  return tokens;
+  return auth;
+};
+
+export const decodeToken = async (token: string, type: TokenType): Promise<Nullable<string | ContextJWT>> => {
+  return new Promise((resolve) => {
+    return JWT.verify(
+      token,
+      type === TokenType.ACCESS ? JWT_ACCESS_TOKEN_KEY : JWT_REFRESH_TOKEN_KEY,
+      { algorithms: [JWT_ALGORITHM as Algorithm] },
+      (err, decoded) => {
+        if (err) {
+          return resolve(null);
+        }
+        return resolve(decoded);
+      }
+    );
+  });
 };
 
 export const validateToken = async (token: string, type: TokenType): Promise<TokenStatus> => {

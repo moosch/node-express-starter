@@ -1,7 +1,8 @@
 import { Request, NextFunction } from 'express';
 import { ErrorCodes, Response, ValidationSettings, ValidationTypes } from '@/types';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
 
+const logger = new Logger('validation_middleware');
 const validationTypes: ValidationTypes[] = ['body', 'query', 'params'];
 
 function validate(settings: ValidationSettings) {

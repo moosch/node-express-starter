@@ -1,5 +1,7 @@
 import { Request, Response,NextFunction } from 'express';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
+
+const logger = new Logger('unknown_route_middleware');
 
 export default function unknownRoute(req: Request, res: Response, _next: NextFunction) {
   logger.info('Unknown route.', { url: req.url });

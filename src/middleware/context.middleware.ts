@@ -1,25 +1,33 @@
 import { NextFunction, Response } from 'express';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
 import authService from '@/services/authentication';
-import { validateToken, TokenStatus, TokenType } from '@/components/tokenManager';
+import {
+  decodeToken,
+  validateToken,
+  ContextJWT,
+  TokenStatus,
+  TokenType,
+} from '@/components/tokens';
 import { Nullable, Request, SecurityContext } from '@/types';
 import BaseError from '@/components/baseError';
 import UserToken from '@/models/userToken';
+import Cache from '@/components/cache';
+import { Entity } from 'redis-om';
+
+const logger = new Logger('context_middleware');
 
 export const contextMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   logger.info(`Building Context for req: ${req.rquid}`);
 
   const { rquid, path } = req;
-  logger.debug('req.path', req.path);
+  logger.debug('req.path', { path: req.path, rquid });
 
   // Extract JWT
   const token = req.headers.authorization ? req.headers.authorization.split(" ")[1] : null;
   if (!token) {
-    logger.info('Error: No Token provided: ');
+    logger.info('Error: No Token provided', { rquid });
     return next(new NoTokenError());
   }
-
-  logger.info('Extracted token', token);
 
   // Ignore if trying to refresh tokens. This is handled by the controller
   if (!path.includes('/refresh')) {
@@ -34,17 +42,38 @@ export const contextMiddleware = async (req: Request, res: Response, next: NextF
     }
   }
 
-  let userTokens: Nullable<UserToken>;
-  /** @todo Fetch from cache  */
-  // On miss, get from db and add to cache
+  /** @todo This and the above validation could be consolidated for improved performance. Overload response */
+  const validatedToken = await decodeToken(token, TokenType.ACCESS) as Nullable<ContextJWT>;
+  if (!validatedToken?._userId) {
+    logger.warn('UserId not found on token');
+    return next();
+  }
 
-  if (!userTokens) {
-    userTokens = await authService.getUserToken(token);
+
+  let cachedUserTokens, dbTokens: Nullable<UserToken>;
+
+  // Cache attempt
+  const cachedEntity = await Cache.find('token', validatedToken?._userId, token);
+  if (cachedEntity) {
+    cachedUserTokens = UserToken.fromDynamic(cachedEntity) as Nullable<UserToken>;
   }
   
-  if (!userTokens) {
+  // Database attempt
+  if (!cachedUserTokens) {
+    logger.info('Cache miss on tokens');
+    dbTokens = await authService.getUserToken(token);
+    // Add to cache
+    if (dbTokens) {
+      logger.info('Adding token to cache.');
+      await Cache.create('token', dbTokens);
+    }
+  }
+  
+  if (!cachedUserTokens && !dbTokens) {
     return next(new InvalidTokenError());
   }
+
+  const userTokens = (cachedUserTokens || dbTokens)!;
 
   const sc: SecurityContext = {
     _userId: userTokens.userId,

@@ -1,9 +1,11 @@
 import { NextFunction, Response } from 'express';
-import logger from '@/components/logger';
+import Logger from '@/components/logger';
 import userService, { UserUpdateProps } from '@/services/users';
 import authService from '@/services/authentication';
 import BaseError from '@/components/baseError';
 import { Request } from '@/types';
+
+const logger = new Logger('users_controller');
 
 export const find = async (req: Request, res: Response, next: NextFunction) => {
   const { _userId: userId } = req.ctx!;

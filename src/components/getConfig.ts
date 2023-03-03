@@ -22,6 +22,7 @@ function getConfig() {
     PGPASSWORD: process.env.PGPASSWORD,
     PGDATABASE: process.env.PGDATABASE,
     PGPORT: process.env.PGPORT,
+    REDIS_URL: process.env.REDIS_URL,
   }
 }
 

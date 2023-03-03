@@ -31,9 +31,10 @@ export interface ValidationSettings {
 export type ValidationTypes = keyof ValidationSettings;
 export type Middleware = (req: Request, res: Response, next: NextFunction) => void
 
-export interface Tokens {
+export interface Authentication {
   accessToken: string
   refreshToken: string
+  userId: string
 }
 
 export interface EncryptionPayload {
@@ -42,3 +43,8 @@ export interface EncryptionPayload {
 }
 
 export type DBRecordTypes = string | number
+
+export abstract class Serializable {
+  static fromDynamic<T>(data?: any): any | T {};
+  public toDynamic<T>(data?: any): any | Record<string, any> {};
+}

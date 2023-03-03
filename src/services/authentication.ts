@@ -1,10 +1,10 @@
 import encryption from '@/components/encryption';
-import tokenManager, { Tokens, TokenStatus, TokenType } from '@/components/tokenManager';
+import tokenManager, { TokenStatus, TokenType } from '@/components/tokens';
 import UserToken from '@/models/userToken';
 import userTokenPersistence from '@/persistence/userTokens';
-import { EncryptionPayload, Nullable } from '@/types';
+import { Authentication, EncryptionPayload, Nullable } from '@/types';
 
-export const generateTokens = async (userId: string): Promise<Nullable<Tokens>> => {
+export const generateTokens = async (userId: string): Promise<Nullable<Authentication>> => {
   return await tokenManager.generate(userId);
 };
 
@@ -22,7 +22,7 @@ export const isTokenValid = async (token: string, tokenType: TokenType): Promise
   return status === TokenStatus.VALID;
 }
 
-export const refreshTokens = async (refreshToken: string, userId: string): Promise<Nullable<Tokens>> => {
+export const refreshTokens = async (refreshToken: string, userId: string): Promise<Nullable<Authentication>> => {
   return await generateTokens(userId);
 };
 

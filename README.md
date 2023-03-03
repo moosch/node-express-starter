@@ -38,7 +38,7 @@ Access tokens are required on every request (except when signing in/up) as a hea
 
 The **Access Token** has an expiry. When it expires, the client is expected to use the **Refresh Token** to generate a new **Access Token** for subsequent requests.
 
-Upon signup or signin, the client will receive both an access and a refresh token:
+Upon signup, signin or refresh, the client will receive both an access and a refresh tokens:
 
 ```json
 {
@@ -53,7 +53,9 @@ Upon signup or signin, the client will receive both an access and a refresh toke
 
 This app uses `pg` drivers rather than a standard ORM. This means, yes, you have to write your own SQL, but if you don't know SQL, maybe you should't be interacting with an SQL database :)
 
-You might be asking, "why not Prisma? It's the new hotness!". Well, it certainly does have a lot of stars on GitHub, but it also has a lot of issues on GitHub too. At the time of writing this, it's around 2.6k, which is a lot. So I decided to go with something more "stable". Old and boring may not be cool, but it works predictably most of the time.
+You might be asking, "why not Prisma? It's the new hotness!". Well, it certainly does have a lot of stars on GitHub, but it also has a lot of issues on GitHub too. At the time of writing this, it's around 2.6k, which is a lot. There's also [Sequelize](https://sequelize.org/) which I have used heavily in the past, but I'm not a fan of creating Sequelize-specific models to manage the shape of data. It's quite heavily tied to the ORM, rather than the actual data.
+
+So I decided to go with something more "stable" and barebones. Old and boring may not be cool, but it works predictably most of the time.
 
 ## Todo
 
@@ -70,6 +72,7 @@ You might be asking, "why not Prisma? It's the new hotness!". Well, it certainly
 - [ ] Add NodeJS events to do cache updates
 - [ ] Add scheduled cleanup worker for orphaned tokens (refresh token validity period)
 - [ ] Add the ability to run migrations
-- [ ] Revisit logger use
+- [x] Revisit logger use
 - [ ] Add all the test
 - [ ] Add Insomnia requests to repo
+- [ ] Add Swagger docs
