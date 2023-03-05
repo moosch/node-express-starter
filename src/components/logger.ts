@@ -1,3 +1,24 @@
+/**
+ * The Logger is an abstraction over native console.X functionality.
+ * It's an interface to set a log level, in order to show the desired level
+ * of log-types depending on the running environment or requirements.
+ * For example in production, you may want to only log INFO, WARN and ERROR
+ * types, so your env variable would be LOG_LEVEL=info.
+ * 
+ * Usage:
+ * 
+ * Create a logger per module, with a useful name and an optional log level.
+ * The default log level comes from process.env if available.
+ * Then use it as you'd expect.
+ * ```javascript
+ * const logger = new Logger('context_middleware', LogLevel.DEBUG);
+ * logger.trace('Trace message')
+ * logger.debug('Debug message')
+ * logger.info('Info message')
+ * logger.warn('Warn message')
+ * logger.error('Error message')
+ * ```
+ */
 import getConfig from '@/components/getConfig';
 
 const { LOG_LEVEL, NODE_ENV } = getConfig();

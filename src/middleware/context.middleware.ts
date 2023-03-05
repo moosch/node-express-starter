@@ -12,7 +12,6 @@ import { Nullable, Request, SecurityContext } from '@/types';
 import BaseError from '@/components/baseError';
 import UserToken from '@/models/userToken';
 import Cache from '@/components/cache';
-import { Entity } from 'redis-om';
 
 const logger = new Logger('context_middleware');
 
@@ -42,13 +41,12 @@ export const contextMiddleware = async (req: Request, res: Response, next: NextF
     }
   }
 
-  /** @todo This and the above validation could be consolidated for improved performance. Overload response */
+  /** @todo This and the above validation could be consolidated for improved performance. Overload the response */
   const validatedToken = await decodeToken(token, TokenType.ACCESS) as Nullable<ContextJWT>;
   if (!validatedToken?._userId) {
     logger.warn('UserId not found on token');
     return next();
   }
-
 
   let cachedUserTokens, dbTokens: Nullable<UserToken>;
 
@@ -61,7 +59,7 @@ export const contextMiddleware = async (req: Request, res: Response, next: NextF
   // Database attempt
   if (!cachedUserTokens) {
     logger.info('Cache miss on tokens');
-    dbTokens = await authService.getUserToken(token);
+    dbTokens = await authService.getUserToken(token, validatedToken?._userId);
     // Add to cache
     if (dbTokens) {
       logger.info('Adding token to cache.');

@@ -1,4 +1,5 @@
 import encryption from '@/components/encryption';
+import { emit, EventTypes } from '@/components/events';
 import tokenManager, { TokenStatus, TokenType } from '@/components/tokens';
 import UserToken from '@/models/userToken';
 import userTokenPersistence from '@/persistence/userTokens';
@@ -26,21 +27,42 @@ export const refreshTokens = async (refreshToken: string, userId: string): Promi
   return await generateTokens(userId);
 };
 
-export const getUserToken = async (accessToken: string): Promise<Nullable<UserToken>> => {
-  return await userTokenPersistence.findBy({ token: accessToken });
+// Should take userId!
+export const getUserToken = async (accessToken: string, userId?: string): Promise<Nullable<UserToken>> => {
+  const tokens = await userTokenPersistence.findBy({
+    userId,
+    token: accessToken,
+  });
+  emit('auth', EventTypes.AUTH_REFRESHED, {
+    name: 'refresh',
+    payload: { tokens: tokens },
+  });
+  return tokens;
 };
 
 export const upsertUserToken = async (userId: string, token: string): Promise<Nullable<UserToken>> => {
   const tokens = await userTokenPersistence.findBy({ userId, token });
+  let newTokens: Nullable<UserToken>;
   if (tokens) {
-    return await userTokenPersistence.update(userId, token);
+    newTokens = await userTokenPersistence.update(userId, token);
   } else {
-    return await userTokenPersistence.create(userId, token);
+    newTokens = await userTokenPersistence.create(userId, token);
   }
+
+  emit('auth', EventTypes.AUTH_REFRESHED, {
+    name: 'refreshed',
+    payload: { userId, token },
+  });
+
+  return newTokens;
 }
 
 export const removeUserToken = async (userId: string, token: string): Promise<void> => {
-  return await userTokenPersistence.remove(userId, token);
+  await userTokenPersistence.remove(userId, token);
+  emit('auth', EventTypes.AUTH_LOGOUT, {
+    name: 'logout',
+    payload: { userId, token },
+  })
 }
 
 export default {

@@ -83,7 +83,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
   const { _userId: userId, _token: token } = req.ctx!;
 
-  authService.removeUserToken(userId, token);
+  await authService.removeUserToken(userId, token);
 
   return res.status(201).send();
 };

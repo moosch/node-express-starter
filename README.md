@@ -68,8 +68,9 @@ So I decided to go with something more "stable" and barebones. Old and boring ma
 - [x] Add persistence layer for UserTokens
 - [x] Add Redis into docker-compose
 - [x] Finish SQL for all routes
-- [ ] Add caching functions for UserTokens
+- [x] Add caching functions for UserTokens
 - [ ] Add NodeJS events to do cache updates
+- [ ] Add middleware to handle tracking
 - [ ] Add scheduled cleanup worker for orphaned tokens (refresh token validity period)
 - [ ] Add the ability to run migrations
 - [x] Revisit logger use

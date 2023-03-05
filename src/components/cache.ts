@@ -32,6 +32,7 @@ export const fetchRepository = async (type: RepositoryTypes, schema: Schema<Enti
   repos[type] = repo;
 };
 
+/** @todo convert to functions */
 export default {
   create: async (type: RepositoryTypes, data: Serializable) => {
     const repo = repos[type];
