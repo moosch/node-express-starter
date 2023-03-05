@@ -17,7 +17,7 @@ const repos: Cache = {};
 
 const connect = async () => {
   const { REDIS_URL } = getConfig();
-  
+
   // redis[s]://[[username][:password]@][host][:port][/db-number]
   client = await new Client().open(REDIS_URL);
   logger.info('Cache connected.');
@@ -32,48 +32,81 @@ export const fetchRepository = async (type: RepositoryTypes, schema: Schema<Enti
   repos[type] = repo;
 };
 
-/** @todo convert to functions */
+
+const create = async (type: RepositoryTypes, data: Serializable) => {
+  const repo = repos[type];
+  if (!repo) {
+    logger.error(`Failed to find Cache Repo for ${type}.`);
+    return;
+  }
+  const entityId = await repo.save(data.toDynamic());
+  if (!entityId) {
+    logger.error('Failed to create Entity in cache.');
+  }
+};
+
+const find = async (type: RepositoryTypes, userId: string, token: string): Promise<Nullable<Record<string, any>>> => {
+  const repo = repos[type];
+  if (!repo) {
+    logger.error(`Failed to find Cache Repo for ${type}.`);
+    return;
+  }
+  const entity = await repo.search()
+    .where('user_id').equals(userId)
+    .and('token').equals(token).return.first();
+  if (!entity) {
+    logger.info(`Failed to find Entity with user_id ${user_id} and token in cache.`);
+    return;
+  }
+  logger.info('Token found in cache.', entity);
+  return entity.toJSON();
+};
+
+const update = async <T>(type: RepositoryTypes, userId: string, token: string): Promise<void> => {
+  const repo = repos[type];
+  if (!repo) {
+    logger.error(`Failed to find Cache Repo for ${type}.`);
+    return;
+  }
+  const entity = await repo.search()
+    .where('user_id').equals(userId)
+    .and('token').equals(token).return.first();
+
+  if (!entity) {
+    logger.warn(`Failed to update cache for ${userId}. Entity not found.`);
+    return;
+  }
+
+  entity.token = token;
+  await repo.save(entity);
+  logger.info('Token updates in cache.');
+};
+
+const remove = async <T>(type: RepositoryTypes, userId: string): Promise<void> => {
+  const repo = repos[type];
+  if (!repo) {
+    logger.error(`Failed to find Cache Repo for ${type}.`);
+    return;
+  }
+  const entity = await repo.search()
+    .where('user_id').equals(userId)
+    .and('token').equals(token).return.first();
+
+  if (!entity) {
+    logger.warn(`Failed to remove cached token for ${userId}. Entity not found.`);
+    return;
+  }
+
+  console.log(`Removing from cache ${entity.entityId}`)
+
+  await repo.remove(entity.entityId);
+
+  logger.info('Token removed from cache.');
+};
+
 export default {
-  create: async (type: RepositoryTypes, data: Serializable) => {
-    const repo = repos[type];
-    if (!repo) {
-      logger.error(`Failed to find Cache Repo for ${type}.`);
-      return;
-    }
-    const entityId = await repo.save(data.toDynamic());
-    if (!entityId) {
-      logger.error('Failed to create Entity in cache.');
-    }
-  },
-
-  find: async (type: RepositoryTypes, user_id: string, token: string): Promise<Nullable<Record<string, any>>> => {
-    const repo = repos[type];
-    if (!repo) {
-      logger.error(`Failed to find Cache Repo for ${type}.`);
-      return;
-    }
-    const entity = await repo.search()
-      .where('user_id').equals(user_id)
-      .and('token').equals(token).return.first();
-    if (!entity) {
-      logger.info(`Failed to find Entity with user_id ${user_id} and token in cache.`);
-      return;
-    }
-    logger.info('Token found in cache.', entity);
-    return entity.toJSON();
-  },
-
-  update: async <T>(type: RepositoryTypes, entityId: string) => {
-    /** @todo */
-  },
-
-  remove: async <T>(type: RepositoryTypes, entityId: string) => {
-    const repo = repos[type];
-    if (!repo) {
-      logger.error(`Failed to find Cache Repo for ${type}.`);
-      return;
-    }
-    await repo.remove(entityId);
-    logger.info('Token removed from cache.');
-  },
-}
+  create,
+  find,
+  update,
+  remove,
+};

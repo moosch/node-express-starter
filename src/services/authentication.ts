@@ -27,7 +27,6 @@ export const refreshTokens = async (refreshToken: string, userId: string): Promi
   return await generateTokens(userId);
 };
 
-// Should take userId!
 export const getUserToken = async (accessToken: string, userId?: string): Promise<Nullable<UserToken>> => {
   const tokens = await userTokenPersistence.findBy({
     userId,
