@@ -26,6 +26,7 @@ export default function startServer() {
   app.use(helmet());
   app.use(compression());
   app.use(cors());
+  app.options('*', cors());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json({ type: ['json', '+json'] }));  
   app.use((_req, res, next) => {
