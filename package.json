@@ -1,16 +1,17 @@
 {
-  "name": "node-rest-api",
+  "name": "node-rest-i",
   "version": "1.1.0",
   "description": "",
-  "main": "src/app.js",
+  "main": "src/server.js",
   "types": "src/types.ts",
   "scripts": {
     "createdb": "psql -h localhost -U postgres < db.sql",
-    "test": "jest --coverage",
+    "test:coverage": "jest --coverage",
+    "test": "jest",
     "build": "npx tsc",
-    "start": "ts-node ./src/app.ts",
+    "start": "ts-node ./src/server.ts",
     "start:dev": "nodemon",
-    "start:prod": "npm run build && node ./dist/src/app.js"
+    "start:prod": "npm run build && node ./dist/src/server.js"
   },
   "keywords": [],
   "author": "Ryan Whitlie <mail@moosch.io>",

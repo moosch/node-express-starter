@@ -1,13 +1,15 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
   roots: ['<rootDir>/src'],
-  globals: {
-    'ts-jest': {
-      tsConfig: 'tsconfig.json',
-      diagnostics: {
-        warnOnly: true,
-      },
-    },
+  transform: {
+    '\\.[jt]sx?$': [
+      'ts-jest', {
+        tsConfig: 'tsconfig.json',
+        diagnostics: {
+          warnOnly: true,
+        }
+      }
+    ]
   },
   clearMocks: true,
   coverageDirectory: 'coverage',

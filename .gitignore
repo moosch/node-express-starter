@@ -4,6 +4,7 @@
 
 node_modules
 
+coverage
 dist
 
 combined.log
@@ -14,3 +15,5 @@ combnied.log
 error.log
 
 yarn-error.log
+
+data
