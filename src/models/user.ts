@@ -4,32 +4,24 @@ interface UserPersistenceProps {
   id: string
   email: string
   password: string
-  created_at?: number
-  updated_at?: number
+  createdAt?: number
+  updatedAt?: number
 }
 
 class User extends Serializable {
   public id: string;
   public email: string;
   public password: string;
-  private _created_at?: number;
-  private _updated_at?: number;
+  public createdAt?: number;
+  public updatedAt?: number;
 
   constructor(user: UserPersistenceProps) {
     super();
     this.id = user.id;
     this.email = user.email;
     this.password = user.password;
-    this._created_at = user.created_at;
-    this._updated_at = user.updated_at;
-  }
-
-  public get createdAt(){
-    return this._created_at;
-  }
-
-  public get updatedAt(){
-    return this._updated_at;
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
   }
 
   // From persistence storage to User object.
@@ -45,8 +37,8 @@ class User extends Serializable {
       id: user.id,
       email: user.email,
       password: user.password,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
     });
   }
 
@@ -56,8 +48,8 @@ class User extends Serializable {
       id: this.id,
       email: this.email,
       password: this.password,
-      created_at: this._created_at,
-      updated_at: this._updated_at,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
     };
   }
 
@@ -66,7 +58,8 @@ class User extends Serializable {
     return {
       id: this.id,
       email: this.email,
-      createdAt: this._created_at,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
     };
   }
 }

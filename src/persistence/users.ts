@@ -73,7 +73,7 @@ export const create = async (email: string, password: string)
     id,
     email,
     password,
-    created_at: Date.now(),
+    createdAt: Date.now(),
   });
 };
 
