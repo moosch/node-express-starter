@@ -39,9 +39,8 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
 
   /** @todo should probably verify the existing password */
   if (password) {
-    const { hash, salt } = await authService.hashPassword(password);
+    const hash = await authService.hashPassword(password);
     props.password = hash;
-    props.salt = salt;
   }
 
   let user = await userService.findBy({ id });
@@ -58,7 +57,7 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
 };
 
 export const remove = async (req: Request, res: Response, next: NextFunction) => {
-  const { _userId: userId } = req.ctx!;
+  const { _userId: userId, _accessToken: accessToken } = req.ctx!;
   const { id } = req.params;
 
   if (id !== userId) {
@@ -66,6 +65,7 @@ export const remove = async (req: Request, res: Response, next: NextFunction) =>
   }
   
   await userService.remove(id);
+  await authService.removeUserToken(userId, accessToken);
   return res.status(200).json({ success: true });
 };
 

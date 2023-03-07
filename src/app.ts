@@ -1,17 +1,13 @@
 import Logger from '@/components/logger';
-import { fetchRepository } from '@/components/cache';
-import { tokenSchema } from '@/models/userToken';
+import { createCache } from '@/components/cache';
+import { tokensSchema } from '@/models/userToken';
 import server from './server';
 
 const logger = new Logger('app');
 
-async function setupCache() {
-  await fetchRepository('token', tokenSchema);
-}
-
 async function start() {
   await server();
-  await setupCache();
+  await createCache('token', tokensSchema);
 }
 
 start()
@@ -19,4 +15,5 @@ start()
     logger.info('Server started.');
   }).catch((error) => {
     logger.error('Server failed to start.', error);
+    process.exit(1);
   });

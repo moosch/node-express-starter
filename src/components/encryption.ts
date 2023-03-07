@@ -1,4 +1,3 @@
-import { EncryptionPayload } from '@/types';
 import bcrypt from 'bcrypt';
 import getConfig from '@/components/getConfig';
 
@@ -8,10 +7,17 @@ if (!SALT_ROUNDS) {
   throw new Error('Unable to start server. Missing SALT_ROUNDS.');
 }
 
-export const encryptPassword = async (password: string): Promise<EncryptionPayload> => {
+export const encryptPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(Number(SALT_ROUNDS));
   const hash = await bcrypt.hash(password, salt);
-  return { hash, salt };
+  return hash;
 }
 
-export default { encryptPassword };
+export const isPasswordValid = async (password: string, hashedPassword: string): Promise<boolean> => {
+  return await bcrypt.compare(password, hashedPassword);
+}
+
+export default {
+  encryptPassword,
+  isPasswordValid,
+};

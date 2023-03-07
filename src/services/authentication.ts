@@ -1,21 +1,23 @@
 import encryption from '@/components/encryption';
-import { emit, EventTypes } from '@/components/events';
 import tokenManager, { TokenStatus, TokenType } from '@/components/tokens';
 import UserToken from '@/models/userToken';
+import cacheService from '@/services/cache';
 import userTokenPersistence from '@/persistence/userTokens';
-import { Authentication, EncryptionPayload, Nullable } from '@/types';
+import { Authentication, Nullable } from '@/types';
+import Logger from '@/components/logger';
+
+const logger = new Logger('authentication_service');
 
 export const generateTokens = async (userId: string): Promise<Nullable<Authentication>> => {
   return await tokenManager.generate(userId);
 };
 
-export const hashPassword = async (password: string): Promise<EncryptionPayload> => {
+export const hashPassword = async (password: string): Promise<string> => {
   return await encryption.encryptPassword(password);
 };
 
-export const isPasswordValid = async (hashedPassword: string, password: string): Promise<boolean> => {
-  /** @toto verify password with bycrypt */
-  return true;
+export const isPasswordValid = async (password: string, hashedPassword: string): Promise<boolean> => {
+  return await encryption.isPasswordValid(password, hashedPassword);
 };
 
 export const isTokenValid = async (token: string, tokenType: TokenType): Promise<boolean> => {
@@ -23,45 +25,50 @@ export const isTokenValid = async (token: string, tokenType: TokenType): Promise
   return status === TokenStatus.VALID;
 }
 
-export const refreshTokens = async (refreshToken: string, userId: string): Promise<Nullable<Authentication>> => {
-  return await generateTokens(userId);
-};
+export const getUserToken = async (userId: string, accessToken: string, saveToCache = true): Promise<Nullable<UserToken>> => {
+  // Attempt cache
+  let tokens: Nullable<UserToken>;
 
-export const getUserToken = async (accessToken: string, userId?: string): Promise<Nullable<UserToken>> => {
-  const tokens = await userTokenPersistence.findBy({
-    userId,
-    token: accessToken,
-  });
-  emit('auth', EventTypes.AUTH_REFRESHED, {
-    name: 'refresh',
-    payload: { tokens: tokens },
-  });
+  const cachedTokens = await cacheService.find('token', userId!, accessToken);
+
+  if (cachedTokens) {
+    return UserToken.fromDynamic(cachedTokens);
+  }
+
+  logger.debug('Cache miss on tokens');
+
+  // Fallback to db
+  tokens = await userTokenPersistence.findBy({ userId, accessToken });
+
+  if (saveToCache && tokens) {
+    await cacheService.create('token', tokens);
+  }
+
   return tokens;
 };
 
-export const upsertUserToken = async (userId: string, token: string): Promise<Nullable<UserToken>> => {
-  const tokens = await userTokenPersistence.findBy({ userId, token });
-  let newTokens: Nullable<UserToken>;
-  if (tokens) {
-    newTokens = await userTokenPersistence.update(userId, token);
-  } else {
-    newTokens = await userTokenPersistence.create(userId, token);
+export const createUserToken = async (userId: string, tokens: Authentication): Promise<Nullable<UserToken>> => {
+  const userTokens = await userTokenPersistence.create(userId, tokens.accessToken, tokens.refreshToken);
+  if (userTokens) {
+    await cacheService.create('token', userTokens);
+  }
+  return userTokens;
+};
+
+export const updateUserToken = async (userId: string, tokens: Authentication, oldAccessToken: string): Promise<Nullable<UserToken>> => {
+  const currentTokens = await getUserToken(userId, oldAccessToken);
+
+  if (currentTokens) {
+    await userTokenPersistence.remove(userId, oldAccessToken);
+    await cacheService.remove('token', userId, oldAccessToken);
   }
 
-  emit('auth', EventTypes.AUTH_REFRESHED, {
-    name: 'refreshed',
-    payload: { userId, token },
-  });
+  return await createUserToken(userId, tokens);
+};
 
-  return newTokens;
-}
-
-export const removeUserToken = async (userId: string, token: string): Promise<void> => {
-  await userTokenPersistence.remove(userId, token);
-  emit('auth', EventTypes.AUTH_LOGOUT, {
-    name: 'logout',
-    payload: { userId, token },
-  })
+export const removeUserToken = async (userId: string, accessToken: string): Promise<void> => {
+  await userTokenPersistence.remove(userId, accessToken);
+  await cacheService.remove('token', userId, accessToken);
 }
 
 export default {
@@ -69,8 +76,8 @@ export default {
   hashPassword,
   isPasswordValid,
   isTokenValid,
-  refreshTokens,
   getUserToken,
-  upsertUserToken,
+  createUserToken,
+  updateUserToken,
   removeUserToken,
 };

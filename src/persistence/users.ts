@@ -11,15 +11,15 @@ const usersTableName = 'users';
 export interface FindUserByProps {
   id?: string
   email?: string
+  ignoreDeleted?: boolean
 }
 
 export interface UserUpdateProps {
   email?: string
   password?: string
-  salt?: string
 }
 
-export const findBy = async ({ id, email }: FindUserByProps): Promise<Nullable<User>> => {
+export const findBy = async ({ id, email, ignoreDeleted = false }: FindUserByProps): Promise<Nullable<User>> => {
   const setStatements: string[] = [];
   const setVariables: DBRecordTypes[] = [];
   let setStatementCursor = 1;
@@ -37,9 +37,14 @@ export const findBy = async ({ id, email }: FindUserByProps): Promise<Nullable<U
 
   const statements = setStatements.join(', ');
 
+  let query = `SELECT * FROM ${usersTableName} WHERE ${statements}`;
+  if (ignoreDeleted) {
+    query = ' AND deleted_at IS NULL';
+  }
+
   const results = await db.query(
     'find-user-by',
-    `SELECT * FROM ${usersTableName} WHERE ${statements} AND deleted_at IS NULL`,
+    query,
     setVariables,
   );
 
@@ -51,29 +56,28 @@ export const findBy = async ({ id, email }: FindUserByProps): Promise<Nullable<U
   return User.fromDynamic(normalizedUsers[0]);
 };
 
-export const create = async (email: string, password: string, salt: string)
+export const create = async (email: string, password: string)
   : Promise<Nullable<User>> => {
-  if (!email || !password || !salt) {
+  if (!email || !password) {
     logger.warn('Missing arguments in User insert from upsert');
     return null;
   }
  
   const id = v4();
-  const result = await db.query(
+  await db.query(
     'create-user',
-    `INSERT INTO ${usersTableName} VALUES($1::uuid, $2::text, $3::text, $4::text)`,
-    [id, email, password, salt],
+    `INSERT INTO ${usersTableName} VALUES($1::uuid, $2::text, $3::text)`,
+    [id, email, password],
   );
   return new User({
     id,
     email,
     password,
-    salt,
     created_at: Date.now(),
   });
 };
 
-export const update = async (id: string, { email, password, salt }: UserUpdateProps)
+export const update = async (id: string, { email, password }: UserUpdateProps)
   : Promise<Nullable<User>> => {
   const setStatements: string[] = [];
   const setVariables: DBRecordTypes[] = [];
@@ -84,15 +88,8 @@ export const update = async (id: string, { email, password, salt }: UserUpdatePr
     setStatementCursor++;
   }
   if (password) {
-    if (!salt) {
-      logger.warn('Trying to reset password without providing salt');
-      return null;
-    }
     setStatements.push(`password = $${setStatementCursor}::text`);
     setVariables.push(password);
-    setStatementCursor++;
-    setStatements.push(`salt = $${setStatementCursor}::text`);
-    setVariables.push(salt);
     setStatementCursor++;
   }
   
@@ -107,7 +104,7 @@ export const update = async (id: string, { email, password, salt }: UserUpdatePr
 
   const statements = setStatements.join(', ');
 
-  const result = await db.query(
+  await db.query(
     'update-user',
     `UPDATE ${usersTableName} SET ${statements}, updated_at = ${timestampStatement} WHERE id = ${idStatement} AND deleted_at IS NULL`,
     setVariables,

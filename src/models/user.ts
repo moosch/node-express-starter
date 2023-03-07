@@ -4,7 +4,6 @@ interface UserPersistenceProps {
   id: string
   email: string
   password: string
-  salt: string
   created_at?: number
   updated_at?: number
 }
@@ -13,7 +12,6 @@ class User extends Serializable {
   public id: string;
   public email: string;
   public password: string;
-  public salt: string;
   private _created_at?: number;
   private _updated_at?: number;
 
@@ -22,7 +20,6 @@ class User extends Serializable {
     this.id = user.id;
     this.email = user.email;
     this.password = user.password;
-    this.salt = user.salt;
     this._created_at = user.created_at;
     this._updated_at = user.updated_at;
   }
@@ -40,7 +37,6 @@ class User extends Serializable {
     if (!user?.id
       || !user?.email
       || !user?.password
-      || !user?.salt
       || !user?.created_at) {
       return null;
     }
@@ -49,7 +45,6 @@ class User extends Serializable {
       id: user.id,
       email: user.email,
       password: user.password,
-      salt: user.salt,
       created_at: user.created_at,
       updated_at: user.updated_at,
     });
@@ -61,7 +56,6 @@ class User extends Serializable {
       id: this.id,
       email: this.email,
       password: this.password,
-      salt: this.salt,
       created_at: this._created_at,
       updated_at: this._updated_at,
     };

@@ -20,7 +20,7 @@ export interface Response extends ExpressResponse {
 
 export interface SecurityContext {
   _userId: string
-  _token: string
+  _accessToken: string
 }
 
 export interface ValidationSettings {
@@ -35,11 +35,6 @@ export interface Authentication {
   accessToken: string
   refreshToken: string
   userId: string
-}
-
-export interface EncryptionPayload {
-  hash: string
-  salt: string
 }
 
 export type DBRecordTypes = string | number

@@ -3,7 +3,6 @@ import authService from '@/services/authentication';
 import BaseError from '@/components/baseError';
 import userService from '@/services/users';
 import Logger from '@/components/logger';
-import { TokenType } from '@/components/tokens';
 import { Request } from '@/types';
 
 const logger = new Logger('authentication_controller');
@@ -11,29 +10,24 @@ const logger = new Logger('authentication_controller');
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
-  logger.info('Finding user by email');
-  let user = await userService.findBy({ email });
+  let user = await userService.findBy({ email, ignoreDeleted: true });
   if (user) {
     return next(new UserAlreadyExistsError());
   }
-  
-  logger.info('Salting and hashing');
-  const { hash, salt } = await authService.hashPassword(password);
-  
-  logger.info('Creating user');
-  user = await userService.create(email, hash, salt);
+
+  const hash = await authService.hashPassword(password);
+
+  user = await userService.create(email, hash);
   if (!user) {
     return next(new UserCreationError());
   }
-  
-  logger.info('Generating user tokens');
+
   const tokens = await authService.generateTokens(user.id);
   if (!tokens) {
     return next(new TokenGenerationError());
   }
 
-  logger.info('Saving user tokens');
-  await authService.upsertUserToken(user.id, tokens.accessToken);
+  await authService.createUserToken(user.id, tokens);
 
   res.status(200).json({ user: user.toJson(), tokens });
 };
@@ -46,7 +40,7 @@ export const signin = async (req: Request, res: Response, next: NextFunction) =>
     return next(new UserNotFoundError());
   }
 
-  const passwordValid = await authService.isPasswordValid(user.password, password);
+  const passwordValid = await authService.isPasswordValid(password, user.password);
   if (!passwordValid) {
     return next(new InvalidPasswordError());
   }
@@ -56,34 +50,30 @@ export const signin = async (req: Request, res: Response, next: NextFunction) =>
     return next(new TokenGenerationError());
   }
 
-  await authService.upsertUserToken(user.id, tokens.accessToken);
+  await authService.createUserToken(user.id, tokens);
 
   return res.status(200).json({ tokens });
 };
 
 export const refresh = async (req: Request, res: Response, next: NextFunction) => {
-  const { refreshToken } = req.body;
-  const { _userId: userId } = req.ctx!;
+  const { _userId: userId, _accessToken: accessToken } = req.ctx!;
 
-  const isTokenValid = await authService.isTokenValid(refreshToken, TokenType.REFRESH);
-  if (!isTokenValid) {
-    return next(new InvalidRefreshTokenError());
-  }
-
-  const tokens = await authService.refreshTokens(refreshToken, userId);
+  const tokens = await authService.generateTokens(userId);
   if (!tokens) {
     return next(new TokenGenerationError());
   }
-
-  await authService.upsertUserToken(userId, tokens.accessToken);
+  const newTokens = await authService.updateUserToken(userId, tokens, accessToken);
+  if (!newTokens) {
+    return next(new TokenRefreshError());
+  }
 
   return res.status(200).json({ tokens });
 };
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
-  const { _userId: userId, _token: token } = req.ctx!;
+  const { _userId: userId, _accessToken: accessToken } = req.ctx!;
 
-  await authService.removeUserToken(userId, token);
+  await authService.removeUserToken(userId, accessToken);
 
   return res.status(201).send();
 };
@@ -128,10 +118,10 @@ class TokenGenerationError extends BaseError {
   }
 }
 
-class InvalidRefreshTokenError extends BaseError {
+class TokenRefreshError extends BaseError {
   constructor(message?: string) {
     super(message);
-    this.name = 'InvalidRefreshTokenError';
+    this.name = 'TokenRefreshError';
     this.message = message || '';
   }
 }
@@ -161,8 +151,8 @@ export const errorHandler = async (err: any, req: Request, res: Response, next: 
   if (err instanceof TokenGenerationError) {
     return res.status(500).json({ error: 'Failed to generate tokens.' });
   }
-  if (err instanceof InvalidRefreshTokenError) {
-    return res.status(404).json({ error: 'Invalid token.' });
+  if (err instanceof TokenRefreshError) {
+    return res.status(500).json({ error: 'Failed to refresh tokens.' });
   }
 
   return res.status(500).json({ error: 'Unknown error.' });

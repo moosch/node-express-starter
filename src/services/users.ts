@@ -8,8 +8,8 @@ export const findBy = async ({ id, email }: FindUserByProps): Promise<Nullable<U
 
 // findAllBy
 
-export const create = async (email: string, password: string, salt: string): Promise<Nullable<User>> => {
-  return await userPersistence.create(email, password, salt);
+export const create = async (email: string, password: string): Promise<Nullable<User>> => {
+  return await userPersistence.create(email, password);
 };
 
 export const update = async (id: string, props: UserUpdateProps): Promise<Nullable<User>> => {

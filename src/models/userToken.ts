@@ -3,68 +3,62 @@ import { Nullable, Serializable } from '@/types';
 
 interface UserTokenPersistenceProps {
   id: string
-  user_id: string
-  token: string
-  created_at?: number
-  updated_at?: number
+  userId: string
+  accessToken: string
+  refreshToken: string
+  createdAt?: number
+  updatedAt?: number
   entityId?: string // Caching ID
 }
 
 /** @note Defining Cache schema does duplicate some code. It could be done with code-generation. */
 
-class Token extends Entity {};
-export const tokenSchema = new Schema(Token, {
+class Tokens extends Entity {};
+export const tokensSchema = new Schema(Tokens, {
   id: { type: 'string' },
   user_id: { type: 'string' },
-  token: { type: 'string' },
+  access_token: { type: 'string' },
+  refresh_token: { type: 'string' },
   created_at: { type: 'date' },
   updated_at: { type: 'date' },
 });
 
 class UserToken extends Serializable {
   public id: string;
-  private user_id: string;
-  public token: string;
-  private _created_at?: number;
-  private _updated_at?: number;
+  public userId: string;
+  public accessToken: string;
+  public refreshToken: string;
+  public createdAt?: number;
+  public updatedAt?: number;
   public entityId?: string; // Caching ID
 
   constructor(userToken: UserTokenPersistenceProps) {
     super();
     this.id = userToken.id;
-    this.user_id = userToken.user_id;
-    this.token = userToken.token;
-    this._created_at = userToken.created_at;
-    this._updated_at = userToken.updated_at;
+    this.userId = userToken.userId;
+    this.accessToken = userToken.accessToken;
+    this.refreshToken = userToken.refreshToken;
+    this.createdAt = userToken.createdAt;
+    this.updatedAt = userToken.updatedAt;
     this.entityId = userToken.entityId;
-  }
-
-  public get userId(){
-    return this.user_id;
-  }
-
-  public get createdAt(){
-    return this._created_at;
-  }
-
-  public get updatedAt(){
-    return this._updated_at;
   }
 
   // From persistence storage to User object
   static fromDynamic(userToken?: Record<string, any>): Nullable<UserToken> {
     if (!userToken?.id
       || !userToken.user_id
-      || !userToken.token) {
+      || !userToken.access_token
+      || !userToken.refresh_token) {
       return null;
     }
   
     return new UserToken({
       id: userToken.id,
-      user_id: userToken.user_id,
-      token: userToken.token,
-      created_at: userToken.created_at,
-      updated_at: userToken.updated_at,
+      userId: userToken.user_id,
+      accessToken: userToken.access_token,
+      refreshToken: userToken.refresh_token,
+      createdAt: userToken.created_at,
+      updatedAt: userToken.updated_at,
       entityId: userToken.entityId,
     });
   }
@@ -73,10 +67,11 @@ class UserToken extends Serializable {
   public toDynamic(): Record<string, any> {
     return {
       id: this.id,
-      user_id: this.user_id,
-      token: this.token,
-      created_at: this._created_at,
-      updated_at: this._updated_at,
+      user_id: this.userId,
+      access_token: this.accessToken,
+      refresh_token: this.refreshToken,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
       entityId: this.entityId,
     };
   }

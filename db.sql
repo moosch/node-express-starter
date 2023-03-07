@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
   id uuid DEFAULT uuid_generate_v4 (),
   email varchar UNIQUE NOT NULL,
   password varchar,
-  salt varchar,
   created_at BIGINT DEFAULT CAST (EXTRACT (epoch from current_timestamp) AS bigint),
   updated_at BIGINT,
   deleted_at BIGINT,
@@ -24,13 +23,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS user_email_idx ON users (email);
 CREATE TABLE IF NOT EXISTS user_tokens (
   id uuid DEFAULT uuid_generate_v4 (),
   user_id uuid NOT NULL REFERENCES users(id),
-  token varchar NOT NULL,
+  access_token varchar NOT NULL,
+  refresh_token varchar NOT NULL,
   created_at BIGINT DEFAULT CAST (EXTRACT (epoch from current_timestamp) AS bigint),
   updated_at BIGINT,
-  PRIMARY KEY(token)
+  PRIMARY KEY(access_token)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS user_tokens_token_idx ON user_tokens (token);
+CREATE UNIQUE INDEX IF NOT EXISTS user_tokens_token_idx ON user_tokens (access_token);
 
 -- Sometimes need to change owner to postgres
 ALTER TABLE users OWNER to postgres;

@@ -10,77 +10,104 @@ import {
 } from '@/components/tokens';
 import { Nullable, Request, SecurityContext } from '@/types';
 import BaseError from '@/components/baseError';
-import UserToken from '@/models/userToken';
-import Cache from '@/components/cache';
 
 const logger = new Logger('context_middleware');
 
-export const contextMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+const scTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   logger.info(`Building Context for req: ${req.rquid}`);
-
-  const { rquid, path } = req;
-  logger.debug('req.path', { path: req.path, rquid });
-
+  const { rquid } = req;
   // Extract JWT
-  const token = req.headers.authorization ? req.headers.authorization.split(" ")[1] : null;
-  if (!token) {
-    logger.info('Error: No Token provided', { rquid });
+  const accessToken = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
+  if (!accessToken) {
+    logger.debug('Error: No Authorization Token provided', { rquid });
     return next(new NoTokenError());
   }
 
-  // Ignore if trying to refresh tokens. This is handled by the controller
-  if (!path.includes('/refresh')) {
-    const validToken = await validateToken(token, TokenType.ACCESS);
-    if (validToken === TokenStatus.INVALID) {
-      logger.info('Token invalid');
-      return next(new InvalidTokenError());
-    }
-    if (validToken === TokenStatus.EXPIRED) {
-      logger.info('Token expired');
-      return next(new ExpiredTokenError());
-    }
+  const sc: SecurityContext = {
+    _userId: '',
+    _accessToken: accessToken,
+  };
+
+  req.ctx = sc;
+  return next();
+};
+
+export const contextMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const { ctx, path } = req;
+  if (path.includes('/refresh')) {
+    return next();
   }
+  if (!ctx) {
+    return next(new NoContextError());
+  }
+  
+  logger.info(`Validating token for req: ${req.rquid}`);
+
+  const { _accessToken: accessToken } = ctx;
 
   /** @todo This and the above validation could be consolidated for improved performance. Overload the response */
-  const validatedToken = await decodeToken(token, TokenType.ACCESS) as Nullable<ContextJWT>;
+  /** Could return { token?: string status: TokenStatus } */
+  const validatedToken = await decodeToken(accessToken, TokenType.ACCESS) as Nullable<ContextJWT>;
   if (!validatedToken?._userId) {
-    logger.warn('UserId not found on token');
+    logger.warn('UserId not found on token', { accessToken, validatedToken});
     return next();
   }
 
-  let cachedUserTokens, dbTokens: Nullable<UserToken>;
+  // Fetches from cache, or db on cache miss.
+  const userTokens = await authService.getUserToken(validatedToken._userId, accessToken, !path.includes('/refresh'));
 
-  // Cache attempt
-  const cachedEntity = await Cache.find('token', validatedToken?._userId, token);
-  if (cachedEntity) {
-    cachedUserTokens = UserToken.fromDynamic(cachedEntity) as Nullable<UserToken>;
-  }
-  
-  // Database attempt
-  if (!cachedUserTokens) {
-    logger.info('Cache miss on tokens');
-    dbTokens = await authService.getUserToken(token, validatedToken?._userId);
-    // Add to cache
-    if (dbTokens) {
-      logger.info('Adding token to cache.');
-      await Cache.create('token', dbTokens);
-    }
-  }
-  
-  if (!cachedUserTokens && !dbTokens) {
+  if (!userTokens) {
     return next(new InvalidTokenError());
   }
 
-  const userTokens = (cachedUserTokens || dbTokens)!;
+  ctx._userId = userTokens.userId;
+  ctx._accessToken = userTokens.accessToken;
 
-  const sc: SecurityContext = {
-    _userId: userTokens.userId,
-    _token: userTokens.token,
-  };
-  req.ctx = sc;
+  req.ctx = ctx;
+  return next();
+};
+
+export const refreshContextMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const { ctx, path } = req;
+  if (!path.includes('/refresh')) {
+    return next();
+  }
+  if (!ctx) {
+    return next(new NoContextError());
+  }
+  
+  logger.info(`Validating refresh token for req: ${req.rquid}`);
+  const { refreshToken } = req.body;
+
+  const validToken = await validateToken(refreshToken, TokenType.REFRESH);
+  if (validToken === TokenStatus.INVALID) {
+    logger.debug('Token refresh invalid');
+    return next(new InvalidRefreshTokenError());
+  }
+  if (validToken === TokenStatus.EXPIRED) {
+    logger.debug('Refresh Token expired');
+    return next(new ExpiredRefreshTokenError());
+  }
+
+  const validatedToken = await decodeToken(refreshToken, TokenType.REFRESH) as Nullable<ContextJWT>;
+  if (!validatedToken?._userId) {
+    logger.warn('UserId not found on token', { refreshToken, validatedToken});
+    return next();
+  }
+
+  ctx._userId = validatedToken._userId;
+  req.ctx = ctx;
 
   return next();
 };
+
+export class NoContextError extends BaseError {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'NoContextError';
+    this.message = message || '';
+  }
+}
 
 export class NoTokenError extends BaseError {
   constructor(message?: string) {
@@ -98,6 +125,14 @@ export class InvalidTokenError extends BaseError {
   }
 }
 
+export class InvalidRefreshTokenError extends BaseError {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'InvalidRefreshTokenError';
+    this.message = message || '';
+  }
+}
+
 export class ExpiredTokenError extends BaseError {
   constructor(message?: string) {
     super(message);
@@ -106,7 +141,18 @@ export class ExpiredTokenError extends BaseError {
   }
 }
 
+export class ExpiredRefreshTokenError extends BaseError {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'ExpiredRefreshTokenError';
+    this.message = message || '';
+  }
+}
+
 export const contextErrorHandler = async (err: any, _req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof NoContextError) {
+    return res.status(500).json({ error: 'Failed to build request context.' });
+  }
   if (err instanceof NoTokenError) {
     return res.status(400).json({ error: 'No Authorization token sent.' });
   }
@@ -116,12 +162,20 @@ export const contextErrorHandler = async (err: any, _req: Request, res: Response
   if (err instanceof ExpiredTokenError) {
     return res.status(400).json({ error: 'Authorization token is expired.' });
   }
-  
+  if (err instanceof InvalidRefreshTokenError) {
+    return res.status(400).json({ error: 'Invalid refresh token sent.' });
+  }
+  if (err instanceof ExpiredRefreshTokenError) {
+    return res.status(400).json({ error: 'Refresh token has expired. Please login.' });
+  }
+
   logger.debug('Unknown error in SecurityContext middleware.');
   return res.status(500).json({ error: 'Unknown error.' });
 };
 
 export default [
-  contextMiddleware,
-  contextErrorHandler,
+  scTokenMiddleware,        // Builds initial SecurityContext
+  contextMiddleware,        // Validates Authorization bearer and adds to req.ctx
+  refreshContextMiddleware, // Validates refresh token on refresh route
+  contextErrorHandler,      // Handles errors
 ];
